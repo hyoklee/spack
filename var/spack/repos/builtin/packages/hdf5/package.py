@@ -17,8 +17,8 @@ class Hdf5(AutotoolsPackage):
     url      = "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.7/src/hdf5-1.10.7.tar.gz"
     list_url = "https://support.hdfgroup.org/ftp/HDF5/releases"
     list_depth = 3
-    git      = "https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git"
-    maintainers = ['lrknox']
+    git      = "https://github.com/HDFGroup/hdf5.git"
+    maintainers = ['lrknox', 'hyoklee']
 
     test_requires_compiler = True
 
