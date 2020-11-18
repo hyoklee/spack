@@ -87,9 +87,10 @@ class Hdf5(AutotoolsPackage):
     if sys.platform != 'darwin':
         depends_on('numactl', when='+mpi+fortran')
     depends_on('szip', when='+szip')
-    depends_on('zlib@1.1.2:')
+    # depends_on('zlib@1.1.2:')
+    depends_on('zlib')
     depends_on('zfp bsws=8', when='+zfp')
-    depends_on('sz', when='+sz')
+    depends_on('sz +hdf5', when='+sz')
     # There are several officially unsupported combinations of the features:
     # 1. Thread safety is not guaranteed via high-level C-API but in some cases
     #    it works.
@@ -311,13 +312,13 @@ class Hdf5(AutotoolsPackage):
             if '+fortran' in self.spec:
                 extra_args.append('FC=%s' % self.spec['mpi'].mpifc)
 
-        if '+zfp' in self.spec:
-            zfp_spec = self.spec['zfp']
-            extra_args.append('--with-zfp=%s' % self.spec['zfp'].prefix)
+#        if '+zfp' in self.spec:
+#            zfp_spec = self.spec['zfp']
+#            extra_args.append('--with-zfp=%s' % self.spec['zfp'].prefix)
 
-        if '+sz' in self.spec:
-            sz_spec = self.spec['sz']
-            extra_args.append('--with-sz=%s' % self.spec['sz'].prefix)
+#        if '+sz' in self.spec:
+#            sz_spec = self.spec['sz']
+#            extra_args.append('--with-sz=%s' % self.spec['sz'].prefix)
 
         extra_args.append('--with-zlib=%s' % self.spec['zlib'].prefix)
 
