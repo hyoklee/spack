@@ -67,7 +67,7 @@ class Hdf5Cmake(CMakePackage):
     variant('java', default=False, description='Enable Java support')
     variant('threadsafe', default=False,
             description='Enable thread-safe capabilities')
-    variant('tools', default=False, description='Enable build tools')
+    variant('tools', default=True, description='Enable build tools')
     variant('mpi', default=True, description='Enable MPI support')
     variant('szip', default=False, description='Enable szip support')
     variant('zlib', default=True, description='Enable zlib support')
@@ -257,7 +257,6 @@ class Hdf5Cmake(CMakePackage):
         args = [self.define('ALLOW_UNSUPPORTED', True)]
 
         args.append(self.define_from_variant('BUILD_SHARED_LIBS', 'shared'))
-
 #        spec = self.spec
 
         if '+pic' in self.spec:
@@ -320,6 +319,7 @@ class Hdf5Cmake(CMakePackage):
         args.append(self.define_from_variant('HDF5_BUILD_JAVA', 'java'))
 
         args.append(self.define_from_variant('HDF5_BUILD_TOOLS', 'tools'))
+
 
         if self.run_tests:
             args.append('-DBUILD_TESTING=ON')
