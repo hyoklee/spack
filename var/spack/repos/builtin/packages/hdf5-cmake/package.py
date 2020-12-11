@@ -19,10 +19,11 @@ class Hdf5Cmake(CMakePackage):
     url      = "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.7/src/hdf5-1.10.7.tar.gz"
     list_url = "https://support.hdfgroup.org/ftp/HDF5/releases"
     list_depth = 3
-    git      = "https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git"
+    # git      = "https://github.com/HDFGroup/hdf5.git"
+    git = "https://github.com/byrnHDF/hdf5.git"
     maintainers = ['lrknox']
 
-    version('develop', branch='develop')
+    version('develop', branch='develop', preferred=True)
     version('develop-1.12', branch='hdf5_1_12')
     version('develop-1.10', branch='hdf5_1_10')
     version('develop-1.8', branch='hdf5_1_8')
@@ -31,7 +32,8 @@ class Hdf5Cmake(CMakePackage):
     # HDF5 1.12 broke API compatibility, so we currently prefer the latest
     # 1.10 release.  packages that want later versions of HDF5 should specify,
     # e.g., depends_on("hdf5@1.12:") to get 1.12 or higher.
-    version('1.10.7', sha256='7a1a0a54371275ce2dfc5cd093775bb025c365846512961e7e5ceaecb437ef15', preferred=True)
+    # version('1.10.7', sha256='7a1a0a54371275ce2dfc5cd093775bb025c365846512961e7e5ceaecb437ef15', preferred=True)
+    version('1.10.7', sha256='7a1a0a54371275ce2dfc5cd093775bb025c365846512961e7e5ceaecb437ef15')
     version('1.10.6', sha256='5f9a3ee85db4ea1d3b1fa9159352aebc2af72732fc2f58c96a3f0768dba0e9aa')
     version('1.10.5', sha256='6d4ce8bf902a97b050f6f491f4268634e252a63dadd6656a1a9be5b7b7726fa8')
     version('1.10.4', sha256='8f60dc4dd6ab5fcd23c750d1dc5bca3d0453bdce5c8cdaf0a4a61a9d1122adb2')
@@ -56,7 +58,8 @@ class Hdf5Cmake(CMakePackage):
             description='Builds a debug version of the library')
     variant('shared', default=True,
             description='Builds a shared version of the library')
-    variant('static', default=True,
+    #variant('static', default=True,
+    variant('static', default=False,
             description='Builds a static version of the library')
 
     conflicts('~static', '~shared')
@@ -69,12 +72,15 @@ class Hdf5Cmake(CMakePackage):
             description='Enable thread-safe capabilities')
     variant('tools', default=True, description='Enable build tools')
     variant('mpi', default=True, description='Enable MPI support')
+    # variant('szip', default=True, description='Enable szip support')
+    # variant('zlib', default=True, description='Enable zlib support')
     variant('szip', default=False, description='Enable szip support')
-    variant('zlib', default=True, description='Enable zlib support')
+    variant('zlib', default=False, description='Enable zlib support')
     variant('pic', default=True,
             description='Produce position-independent code (for shared libs)')
     # Build HDF5 with API compatibility.
     variant('api', default='none', description='Choose api compatibility', values=('none', 'v114', 'v112', 'v110', 'v18', 'v16'), multi=False)
+    variant('lzf', default=True, description='Enable lzf support')
 
     conflicts('api=v114', when='@1.6:1.12.99', msg='v114 is not compatible with this release')
     conflicts('api=v114', when='@:develop-1.12.99', msg='v114 is not compatible with this release')
@@ -95,6 +101,8 @@ class Hdf5Cmake(CMakePackage):
         depends_on('numactl', when='+mpi+fortran')
     depends_on('szip', when='+szip')
     depends_on('zlib@1.2.5:', when='+zlib')
+    # lzf doesn't exist in Spack.
+    # depends_on('lzf', when='+lzf')
 
     # The Java wrappers and associated libhdf5_java library
     # were first available in 1.10
@@ -286,6 +294,16 @@ class Hdf5Cmake(CMakePackage):
             args.append(
                 '-DSZIP_DIR:PATH={0}'.format(
                     self.spec['szip'].prefix.lib))
+# Copy options from plugin-repo.
+        if '+lzf' in self.spec:
+            args.append('-DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=ON')
+            args.append('-DPLUGIN_USE_EXTERNAL:BOOL=ON')
+            # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=GIT')
+            args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
+            args.append('-DHDF5_PACKAGE_EXTLIBS:BOOL=ON')
+            args.append('-DENABLE_LZF:BOOL=ON')
+            args.append('-DENABLE_ZLIB:BOOL=OFF')
+            args.append('-DENABLE_SZIP:BOOL=OFF')
 
         if '+mpi' in self.spec:
             args.append('-DHDF5_ENABLE_PARALLEL=ON')
