@@ -71,7 +71,8 @@ class Hdf5Cmake(CMakePackage):
     variant('threadsafe', default=False,
             description='Enable thread-safe capabilities')
     variant('tools', default=True, description='Enable build tools')
-    variant('mpi', default=True, description='Enable MPI support')
+    # variant('mpi', default=True, description='Enable MPI support')
+    variant('mpi', default=False, description='Enable MPI support')
     # variant('szip', default=True, description='Enable szip support')
     # variant('zlib', default=True, description='Enable zlib support')
     variant('szip', default=False, description='Enable szip support')
@@ -92,7 +93,6 @@ class Hdf5Cmake(CMakePackage):
     conflicts('api=v18', when='@:develop-1.6.99', msg='v18 is not compatible with this release')
 
     depends_on('cmake@3.12.4:', type='build')
-
     depends_on('mpi', when='+mpi')
     depends_on('java', type=('build', 'run'), when='+java')
     conflicts('+java', when='~shared')
@@ -300,10 +300,15 @@ class Hdf5Cmake(CMakePackage):
             args.append('-DPLUGIN_USE_EXTERNAL:BOOL=ON')
             # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=GIT')
             args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
+            args.append('-DH5PL_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
             args.append('-DHDF5_PACKAGE_EXTLIBS:BOOL=ON')
+            args.append('-DTGZPATH:STRING=/scr/hyoklee/src/hdf5_plugins/libs')
+            args.append('-DPLUGIN_TGZ_NAME:STRING=/scr/hyoklee/src/hdf5_plugins/libs/hdf5_plugins.tar.gz')
             args.append('-DENABLE_LZF:BOOL=ON')
             args.append('-DENABLE_ZLIB:BOOL=OFF')
             args.append('-DENABLE_SZIP:BOOL=OFF')
+            args.append('-DBUILD_TESTING:BOOL=ON')
+            # args.append('-DPLUGIN_URL:STRING=file://scr/hyoklee/src/hdf5_plugins/')
 
         if '+mpi' in self.spec:
             args.append('-DHDF5_ENABLE_PARALLEL=ON')
@@ -339,10 +344,10 @@ class Hdf5Cmake(CMakePackage):
         args.append(self.define_from_variant('HDF5_BUILD_TOOLS', 'tools'))
 
 
-        if self.run_tests:
-            args.append('-DBUILD_TESTING=ON')
-        else:
-            args.append('-DBUILD_TESTING=OFF')
+        #if self.run_tests:
+        #    args.append('-DBUILD_TESTING=ON')
+        #else:
+        #   args.append('-DBUILD_TESTING=OFF')
 
         if self.spec.variants['api'].value != 'none':
             args.append(
