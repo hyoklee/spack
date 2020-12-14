@@ -296,15 +296,19 @@ class Hdf5Cmake(CMakePackage):
                     self.spec['szip'].prefix.lib))
 # Copy options from plugin-repo.
         if '+lzf' in self.spec:
+            args.append('-C ../config/cmake/cacheinit.cmake')
             args.append('-DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=ON')
             args.append('-DPLUGIN_USE_EXTERNAL:BOOL=ON')
             # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=GIT')
+            args.append('-DBUILD_SHARED_LIBS:BOO=ON')
             args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
             args.append('-DH5PL_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
             args.append('-DHDF5_PACKAGE_EXTLIBS:BOOL=ON')
             args.append('-DTGZPATH:STRING=/scr/hyoklee/src/hdf5_plugins/libs')
             args.append('-DPLUGIN_TGZ_NAME:STRING=/scr/hyoklee/src/hdf5_plugins/libs/hdf5_plugins.tar.gz')
             args.append('-DENABLE_LZF:BOOL=ON')
+            args.append('-DENABLE_SZ:BOOL=ON')
+            args.append('-DENABLE_ZFP:BOOL=ON')
             args.append('-DENABLE_ZLIB:BOOL=OFF')
             args.append('-DENABLE_SZIP:BOOL=OFF')
             args.append('-DBUILD_TESTING:BOOL=ON')
@@ -358,6 +362,9 @@ class Hdf5Cmake(CMakePackage):
 
     @run_after('install')
     @on_package_attributes(run_tests=True)
+    def test(self):
+        # https://spack.readthedocs.io/en/latest/build_systems/custompackage.html
+        make('test')
     def check_install(self):
         # Build and run a small program to test the installed HDF5 library
         spec = self.spec
