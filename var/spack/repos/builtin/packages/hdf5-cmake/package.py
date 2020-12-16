@@ -81,7 +81,18 @@ class Hdf5Cmake(CMakePackage):
             description='Produce position-independent code (for shared libs)')
     # Build HDF5 with API compatibility.
     variant('api', default='none', description='Choose api compatibility', values=('none', 'v114', 'v112', 'v110', 'v18', 'v16'), multi=False)
+
+    # Build filter plugins.
+    variant('blosc', default=True, description='Enable blosc support')
+    variant('bshuf', default=True, description='Enable bshuf support')
+    variant('bz2', default=True, description='Enable bz2 support')
+    variant('jpeg', default=True, description='Enable jpeg support')
+    variant('lz4', default=True, description='Enable lz4 support')
     variant('lzf', default=True, description='Enable lzf support')
+    # SZ filter doesn't work.
+    variant('szf', default=False, description='Enable szf support')
+    variant('zfp', default=True, description='Enable zfp support')
+
 
     conflicts('api=v114', when='@1.6:1.12.99', msg='v114 is not compatible with this release')
     conflicts('api=v114', when='@:develop-1.12.99', msg='v114 is not compatible with this release')
@@ -294,9 +305,40 @@ class Hdf5Cmake(CMakePackage):
             args.append(
                 '-DSZIP_DIR:PATH={0}'.format(
                     self.spec['szip'].prefix.lib))
-# Copy options from plugin-repo.
+
+        if '+blosc' in self.spec:
+            args.append('-DENABLE_BLOSC:BOOL=ON')
+
+        if '+bshuf' in self.spec:
+            args.append('-DENABLE_BSHUF:BOOL=ON')
+
+        if '+bz2' in self.spec:
+            args.append('-DENABLE_BZIP2:BOOL=ON')
+
+        if '+jpeg' in self.spec:
+            args.append('-DENABLE_JPEG:BOOL=ON')
+
+        if '+lz4' in self.spec:
+            args.append('-DENABLE_LZ4:BOOL=ON')
+
         if '+lzf' in self.spec:
-#            args.append('-C \"/scr/hyoklee/src/hdf5_plugins/config/cmake/cacheinit.cmake\"')
+            # The following will not work.
+            # args.append('-C /scr/hyoklee/src/hdf5-byrn/config/cmake/cacheinit.cmake')
+            # Instead, split the arguments like the following 
+            args.append('-C')
+            # Use full path instead of 'config/cmake/cacheinit.cmake'.
+            args.append('/scr/hyoklee/src/hdf5-byrn/config/cmake/cacheinit.cmake')
+            # Or copy cacheinit values.
+            args.append('-DUSE_SHARED_LIBS:BOOL=ON')
+            args.append('-DBUILD_TESTING:BOOL=ON')
+            args.append('-DH5PL_BUILD_TESTING:BOOL=ON')
+            args.append('-DBUILD_EXAMPLES:BOOL=ON')
+            args.append('-DHDF5_PACKAGE_NAME:STRING=hdf5')
+            args.append('-DH5PL_ALLOW_EXTERNAL_SUPPORT:STRING=NO')
+            args.append('-DPLUGIN_TGZ_NAME:STRING=hdf5_plugins.tar.gz')
+            args.append('-DPLUGIN_PACKAGE_NAME:STRING=pl')
+            args.append('-DLZF_TGZ_NAME:STRING=lzf.tar.gz')
+            args.append('-DLZF_PACKAGE_NAME:STRING=lzf')
             args.append('-DCMAKE_INSTALL_FRAMEWORK_PREFIX:STRING=Library/Frameworks')
             args.append('-DHDF_PACKAGE_NAMESPACE:STRING=hdf5::')
             args.append('-DHDF5_BUILD_GENERATORS:BOOL=ON')
@@ -310,23 +352,19 @@ class Hdf5Cmake(CMakePackage):
             args.append('-DBUILD_SHARED_LIBS:BOOL=ON')
             # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
             args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
-            args.append('-DH5PL_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
+
             args.append('-DTGZPATH:STRING=/scr/hyoklee/x')
             args.append('-DHDF5_PACKAGE_EXTLIBS:BOOL=ON')
-            args.append('-DPLUGIN_TGZ_NAME:STRING=hdf5_plugins.tar.gz')
             args.append('-DENABLE_LZF:BOOL=ON')
-            args.append('-DLZF_TGZ_NAME:STRING=lzf.tar.gz')
-            args.append('-DENABLE_SZ:BOOL=OFF')
-            args.append('-DENABLE_ZFP:BOOL=OFF')
-            args.append('-DENABLE_ZLIB:BOOL=OFF')
-            args.append('-DENABLE_SZIP:BOOL=OFF')
-            args.append('-DENABLE_BSHUF:BOOL=OFF')
-            args.append('-DENABLE_BLOSC:BOOL=OFF')
-            args.append('-DENABLE_BZIP2:BOOL=OFF')
-            args.append('-DENABLE_JPEG:BOOL=OFF')
-            args.append('-DENABLE_LZ4:BOOL=OFF')
+            # args.append('-DENABLE_ZLIB:BOOL=OFF')
+            # args.append('-DENABLE_SZIP:BOOL=OFF')
             args.append('-DBUILD_TESTING:BOOL=ON')
             # args.append('-DPLUGIN_URL:STRING=file://scr/hyoklee/src/hdf5_plugins/')
+        if '+zfp' in self.spec:
+            args.append('-DENABLE_ZFP:BOOL=ON')
+
+        if '+szf' in self.spec:
+            args.append('-DENABLE_SZF:BOOL=ON')
 
         if '+mpi' in self.spec:
             args.append('-DHDF5_ENABLE_PARALLEL=ON')
