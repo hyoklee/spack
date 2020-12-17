@@ -74,10 +74,8 @@ class Hdf5Cmake(CMakePackage):
     variant('tools', default=True, description='Enable build tools')
     # variant('mpi', default=True, description='Enable MPI support')
     variant('mpi', default=False, description='Enable MPI support')
-    # variant('szip', default=True, description='Enable szip support')
-    # variant('zlib', default=True, description='Enable zlib support')
-    variant('szip', default=False, description='Enable szip support')
-    variant('zlib', default=False, description='Enable zlib support')
+    variant('szip', default=True, description='Enable szip support')
+    variant('zlib', default=True, description='Enable zlib support')
     variant('pic', default=True,
             description='Produce position-independent code (for shared libs)')
     # Build HDF5 with API compatibility.
@@ -90,7 +88,6 @@ class Hdf5Cmake(CMakePackage):
     variant('jpeg', default=True, description='Enable jpeg support')
     variant('lz4', default=True, description='Enable lz4 support')
     variant('lzf', default=True, description='Enable lzf support')
-    # SZ filter doesn't work.
     variant('szf', default=True, description='Enable szf support')
     variant('zfp', default=True, description='Enable zfp support')
 
@@ -113,8 +110,6 @@ class Hdf5Cmake(CMakePackage):
         depends_on('numactl', when='+mpi+fortran')
     depends_on('szip', when='+szip')
     depends_on('zlib@1.2.5:', when='+zlib')
-    # lzf doesn't exist in Spack.
-    # depends_on('lzf', when='+lzf')
 
     # The Java wrappers and associated libhdf5_java library
     # were first available in 1.10
@@ -268,6 +263,49 @@ class Hdf5Cmake(CMakePackage):
             msg = 'cannot build a Java variant without a Java compiler'
             raise RuntimeError(msg)
 
+    def cmake_define_cacheinit(self, args):
+            # Or copy cacheinit values.
+            args.append('-DUSE_SHARED_LIBS:BOOL=ON')
+            args.append('-DBUILD_TESTING:BOOL=ON')
+            args.append('-DH5PL_BUILD_TESTING:BOOL=ON')
+            args.append('-DBUILD_EXAMPLES:BOOL=ON')
+            args.append('-DHDF5_PACKAGE_NAME:STRING=hdf5')
+            args.append('-DH5PL_ALLOW_EXTERNAL_SUPPORT:STRING=NO')
+            args.append('-DPLUGIN_TGZ_NAME:STRING=hdf5_plugins.tar.gz')
+            args.append('-DPLUGIN_PACKAGE_NAME:STRING=pl')
+            args.append('-DLZF_TGZ_NAME:STRING=lzf.tar.gz')
+            args.append('-DLZF_PACKAGE_NAME:STRING=lzf')
+            args.append('-DCMAKE_INSTALL_FRAMEWORK_PREFIX:STRING=Library/Frameworks')
+            args.append('-DHDF_PACKAGE_NAMESPACE:STRING=hdf5::')
+            args.append('-DHDF5_BUILD_GENERATORS:BOOL=ON')
+            args.append('-DH5PL_SOURCE_DIR:STRING=/scr/hyoklee/src/hdf5_plugins')
+            args.append('-DH5PL_RESOURCES_DIR:STRING=/scr/hyoklee/src/hdf5_plugins/config/cmake')
+            args.append('-DH5LZF_RESOURCES_DIR:STRING=/scr/hyoklee/src/hdf5_plugins/LZF/config/cmake')
+            args.append('-DPLUGIN_PACKAGE_NAME:STRING=pl')
+            args.append('-DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=ON')
+            args.append('-DPLUGIN_USE_EXTERNAL:BOOL=ON')
+            # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=GIT')
+            args.append('-DBUILD_SHARED_LIBS:BOOL=ON')
+            # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
+            args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
+            args.append('-DTGZPATH:STRING=/scr/hyoklee/x')
+             args.append('-DHDF5_PACKAGE_EXTLIBS:BOOL=ON')
+            # args.append('-DENABLE_ZLIB:BOOL=OFF')
+            # args.append('-DENABLE_SZIP:BOOL=OFF')
+            args.append('-DBUILD_TESTING:BOOL=ON')
+            # args.append('-DPLUGIN_URL:STRING=file://scr/hyoklee/src/hdf5_plugins/
+
+    def cmake_use_cacheinit(self, args):
+        # The following will not work.
+        # args.append('-C /scr/hyoklee/src/hdf5-byrn/config/cmake/cacheinit.cmake')
+        # Instead, split the arguments like the following 
+        args.append('-C')
+        # Use full path instead of 'config/cmake/cacheinit.cmake'.
+        args.append('/scr/hyoklee/src/hdf5-byrn/config/cmake/cacheinit.cmake')
+        args.append('-DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=ON')
+        args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
+        args.append('-DTGZPATH:STRING=/scr/hyoklee/x')
+
     def cmake_args(self):
 
         # Always enable this option. This does not actually enable any
@@ -277,7 +315,6 @@ class Hdf5Cmake(CMakePackage):
         args = [self.define('ALLOW_UNSUPPORTED', True)]
 
         args.append(self.define_from_variant('BUILD_SHARED_LIBS', 'shared'))
-#        spec = self.spec
 
         if '+pic' in self.spec:
             args.extend([
@@ -323,44 +360,9 @@ class Hdf5Cmake(CMakePackage):
             args.append('-DENABLE_LZ4:BOOL=ON')
 
         if '+lzf' in self.spec:
-            # The following will not work.
-            # args.append('-C /scr/hyoklee/src/hdf5-byrn/config/cmake/cacheinit.cmake')
-            # Instead, split the arguments like the following 
-            args.append('-C')
-            # Use full path instead of 'config/cmake/cacheinit.cmake'.
-            args.append('/scr/hyoklee/src/hdf5-byrn/config/cmake/cacheinit.cmake')
-            # Or copy cacheinit values.
-            args.append('-DUSE_SHARED_LIBS:BOOL=ON')
-            args.append('-DBUILD_TESTING:BOOL=ON')
-            args.append('-DH5PL_BUILD_TESTING:BOOL=ON')
-            args.append('-DBUILD_EXAMPLES:BOOL=ON')
-            args.append('-DHDF5_PACKAGE_NAME:STRING=hdf5')
-            args.append('-DH5PL_ALLOW_EXTERNAL_SUPPORT:STRING=NO')
-            args.append('-DPLUGIN_TGZ_NAME:STRING=hdf5_plugins.tar.gz')
-            args.append('-DPLUGIN_PACKAGE_NAME:STRING=pl')
-            args.append('-DLZF_TGZ_NAME:STRING=lzf.tar.gz')
-            args.append('-DLZF_PACKAGE_NAME:STRING=lzf')
-            args.append('-DCMAKE_INSTALL_FRAMEWORK_PREFIX:STRING=Library/Frameworks')
-            args.append('-DHDF_PACKAGE_NAMESPACE:STRING=hdf5::')
-            args.append('-DHDF5_BUILD_GENERATORS:BOOL=ON')
-            args.append('-DH5PL_SOURCE_DIR:STRING=/scr/hyoklee/src/hdf5_plugins')
-            args.append('-DH5PL_RESOURCES_DIR:STRING=/scr/hyoklee/src/hdf5_plugins/config/cmake')
-            args.append('-DH5LZF_RESOURCES_DIR:STRING=/scr/hyoklee/src/hdf5_plugins/LZF/config/cmake')
-            args.append('-DPLUGIN_PACKAGE_NAME:STRING=pl')
-            args.append('-DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=ON')
-            args.append('-DPLUGIN_USE_EXTERNAL:BOOL=ON')
-            # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=GIT')
-            args.append('-DBUILD_SHARED_LIBS:BOOL=ON')
-            # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
-            args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
-
-            args.append('-DTGZPATH:STRING=/scr/hyoklee/x')
-            args.append('-DHDF5_PACKAGE_EXTLIBS:BOOL=ON')
+            self.cmake_use_cacheinit(args)
             args.append('-DENABLE_LZF:BOOL=ON')
-            # args.append('-DENABLE_ZLIB:BOOL=OFF')
-            # args.append('-DENABLE_SZIP:BOOL=OFF')
-            args.append('-DBUILD_TESTING:BOOL=ON')
-            # args.append('-DPLUGIN_URL:STRING=file://scr/hyoklee/src/hdf5_plugins/')
+
         if '+zfp' in self.spec:
             args.append('-DENABLE_ZFP:BOOL=ON')
 
