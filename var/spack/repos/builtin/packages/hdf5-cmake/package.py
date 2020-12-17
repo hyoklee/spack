@@ -20,7 +20,8 @@ class Hdf5Cmake(CMakePackage):
     list_url = "https://support.hdfgroup.org/ftp/HDF5/releases"
     list_depth = 3
     # git      = "https://github.com/HDFGroup/hdf5.git"
-    git = "https://github.com/byrnHDF/hdf5.git"
+    # git = "https://github.com/byrnHDF/hdf5.git"
+    git = "https://github.com/hyoklee/hdf5.git"
     maintainers = ['lrknox']
 
     version('develop', branch='develop', preferred=True)
@@ -90,7 +91,7 @@ class Hdf5Cmake(CMakePackage):
     variant('lz4', default=True, description='Enable lz4 support')
     variant('lzf', default=True, description='Enable lzf support')
     # SZ filter doesn't work.
-    variant('szf', default=False, description='Enable szf support')
+    variant('szf', default=True, description='Enable szf support')
     variant('zfp', default=True, description='Enable zfp support')
 
 
