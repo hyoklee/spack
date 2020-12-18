@@ -74,7 +74,7 @@ class Hdf5Cmake(CMakePackage):
     variant('tools', default=True, description='Enable build tools')
     # variant('mpi', default=True, description='Enable MPI support')
     variant('mpi', default=False, description='Enable MPI support')
-    variant('szip', default=True, description='Enable szip support')
+    variant('szip', default=False, description='Enable szip support')
     variant('zlib', default=True, description='Enable zlib support')
     variant('pic', default=True,
             description='Produce position-independent code (for shared libs)')
@@ -82,14 +82,14 @@ class Hdf5Cmake(CMakePackage):
     variant('api', default='none', description='Choose api compatibility', values=('none', 'v114', 'v112', 'v110', 'v18', 'v16'), multi=False)
 
     # Build filter plugins.
-    variant('blosc', default=True, description='Enable blosc support')
-    variant('bshuf', default=True, description='Enable bshuf support')
-    variant('bz2', default=True, description='Enable bz2 support')
-    variant('jpeg', default=True, description='Enable jpeg support')
-    variant('lz4', default=True, description='Enable lz4 support')
+    variant('blosc', default=False, description='Enable blosc support')
+    variant('bshuf', default=False, description='Enable bshuf support')
+    variant('bz2', default=False, description='Enable bz2 support')
+    variant('jpeg', default=False, description='Enable jpeg support')
+    variant('lz4', default=False, description='Enable lz4 support')
     variant('lzf', default=True, description='Enable lzf support')
-    variant('szf', default=True, description='Enable szf support')
-    variant('zfp', default=True, description='Enable zfp support')
+    variant('szf', default=False, description='Enable szf support')
+    variant('zfp', default=False, description='Enable zfp support')
 
 
     conflicts('api=v114', when='@1.6:1.12.99', msg='v114 is not compatible with this release')
@@ -289,9 +289,9 @@ class Hdf5Cmake(CMakePackage):
             # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
             args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
             args.append('-DTGZPATH:STRING=/scr/hyoklee/x')
-             args.append('-DHDF5_PACKAGE_EXTLIBS:BOOL=ON')
-            # args.append('-DENABLE_ZLIB:BOOL=OFF')
-            # args.append('-DENABLE_SZIP:BOOL=OFF')
+            args.append('-DHDF5_PACKAGE_EXTLIBS:BOOL=ON')
+            #args.append('-DENABLE_ZLIB:BOOL=OFF')
+            #args.append('-DENABLE_SZIP:BOOL=OFF')
             args.append('-DBUILD_TESTING:BOOL=ON')
             # args.append('-DPLUGIN_URL:STRING=file://scr/hyoklee/src/hdf5_plugins/
 
@@ -301,10 +301,19 @@ class Hdf5Cmake(CMakePackage):
         # Instead, split the arguments like the following 
         args.append('-C')
         # Use full path instead of 'config/cmake/cacheinit.cmake'.
-        args.append('/scr/hyoklee/src/hdf5-byrn/config/cmake/cacheinit.cmake')
+        #args.append('/scr/hyoklee/src/hdf5-byrn/config/cmake/cacheinit.cmake')
+        args.append('/scr/hyoklee/src/hdf5/config/cmake/cacheinit.cmake')
         args.append('-DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=ON')
-        args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
-        args.append('-DTGZPATH:STRING=/scr/hyoklee/x')
+
+        args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=GIT')
+
+        # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
+        # args.append('-DTGZPATH:STRING=/scr/hyoklee/x')
+        args.append('-DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF')
+        args.append('-DHDF5_ENABLE_SZIP_ENCODING:BOOL=OFF')
+        # args.append('-DPLUGIN_GIT_URL:STRING=https://bitbucket.hdfgroup.org/scm/test/hdf5_plugins.git')
+        # args.append('-DPLUGIN_GIT_URL:STRING=https://hyoklee@bitbucket.hdfgroup.org/scm/~hyoklee/hdf5_plugins.git')
+        args.append('-DPLUGIN_GIT_URL:STRING=https://github.com/hyoklee/hdf5_plugins.git')
 
     def cmake_args(self):
 
@@ -339,7 +348,7 @@ class Hdf5Cmake(CMakePackage):
             args.append('-DHDF5_ENABLE_SZIP_ENCODING:BOOL=ON')
             args.append(
                 '-DSZIP_INCLUDE_DIR:PATH={0}'.format(
-                    self.spec['zlib'].prefix.include))
+                    self.spec['szip'].prefix.include))
             args.append(
                 '-DSZIP_DIR:PATH={0}'.format(
                     self.spec['szip'].prefix.lib))
