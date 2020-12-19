@@ -314,7 +314,9 @@ class Hdf5Cmake(CMakePackage):
         # args.append('-DPLUGIN_GIT_URL:STRING=https://bitbucket.hdfgroup.org/scm/test/hdf5_plugins.git')
         # args.append('-DPLUGIN_GIT_URL:STRING=https://hyoklee@bitbucket.hdfgroup.org/scm/~hyoklee/hdf5_plugins.git')
         args.append('-DPLUGIN_GIT_URL:STRING=https://github.com/hyoklee/hdf5_plugins.git')
-
+        args.append('-DENABLE_JPEG:BOOL=OFF')
+        args.append('-DENABLE_BZIP2:BOOL=OFF')
+        args.append('-DENABLE_BLOSC:BOOL=OFF')
     def cmake_args(self):
 
         # Always enable this option. This does not actually enable any
