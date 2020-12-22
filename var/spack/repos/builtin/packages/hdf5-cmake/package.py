@@ -301,8 +301,9 @@ class Hdf5Cmake(CMakePackage):
         # Instead, split the arguments like the following 
         args.append('-C')
         # Use full path instead of 'config/cmake/cacheinit.cmake'.
-        #args.append('/scr/hyoklee/src/hdf5-byrn/config/cmake/cacheinit.cmake')
-        args.append('/scr/hyoklee/src/hdf5/config/cmake/cacheinit.cmake')
+        # E.g., args.append('/scr/hyoklee/src/hdf5/config/cmake/cacheinit.cmake')
+        cf = self.build_directory+'/../spack-src/config/cmake/cacheinit.cmake'
+        args.append(cf)
         args.append('-DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=ON')
 
         args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=GIT')
