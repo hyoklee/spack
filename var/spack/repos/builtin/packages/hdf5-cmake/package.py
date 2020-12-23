@@ -19,7 +19,7 @@ class Hdf5Cmake(CMakePackage):
     url      = "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.7/src/hdf5-1.10.7.tar.gz"
     list_url = "https://support.hdfgroup.org/ftp/HDF5/releases"
     list_depth = 3
-    # git = "https://github.com/HDFGroup/hdf5.git"
+    #git = "https://github.com/HDFGroup/hdf5.git"
     # git = "https://github.com/byrnHDF/hdf5.git"
     git = "https://github.com/hyoklee/hdf5.git"
     maintainers = ['lrknox']
@@ -59,8 +59,8 @@ class Hdf5Cmake(CMakePackage):
             description='Builds a debug version of the library')
     variant('shared', default=True,
             description='Builds a shared version of the library')
-    #variant('static', default=True,
-    variant('static', default=False,
+    variant('static', default=True,
+    #variant('static', default=False,
             description='Builds a static version of the library')
 
     conflicts('~static', '~shared')
@@ -74,7 +74,7 @@ class Hdf5Cmake(CMakePackage):
     variant('tools', default=True, description='Enable build tools')
     # variant('mpi', default=True, description='Enable MPI support')
     variant('mpi', default=False, description='Enable MPI support')
-    variant('szip', default=False, description='Enable szip support')
+    variant('szip', default=True, description='Enable szip support')
     variant('zlib', default=True, description='Enable zlib support')
     variant('pic', default=True,
             description='Produce position-independent code (for shared libs)')
@@ -263,38 +263,6 @@ class Hdf5Cmake(CMakePackage):
             msg = 'cannot build a Java variant without a Java compiler'
             raise RuntimeError(msg)
 
-    def cmake_define_cacheinit(self, args):
-            # Or copy cacheinit values.
-            args.append('-DUSE_SHARED_LIBS:BOOL=ON')
-            args.append('-DBUILD_TESTING:BOOL=ON')
-            args.append('-DH5PL_BUILD_TESTING:BOOL=ON')
-            args.append('-DBUILD_EXAMPLES:BOOL=ON')
-            args.append('-DHDF5_PACKAGE_NAME:STRING=hdf5')
-            args.append('-DH5PL_ALLOW_EXTERNAL_SUPPORT:STRING=NO')
-            args.append('-DPLUGIN_TGZ_NAME:STRING=hdf5_plugins.tar.gz')
-            args.append('-DPLUGIN_PACKAGE_NAME:STRING=pl')
-            args.append('-DLZF_TGZ_NAME:STRING=lzf.tar.gz')
-            args.append('-DLZF_PACKAGE_NAME:STRING=lzf')
-            args.append('-DCMAKE_INSTALL_FRAMEWORK_PREFIX:STRING=Library/Frameworks')
-            args.append('-DHDF_PACKAGE_NAMESPACE:STRING=hdf5::')
-            args.append('-DHDF5_BUILD_GENERATORS:BOOL=ON')
-            args.append('-DH5PL_SOURCE_DIR:STRING=/scr/hyoklee/src/hdf5_plugins')
-            args.append('-DH5PL_RESOURCES_DIR:STRING=/scr/hyoklee/src/hdf5_plugins/config/cmake')
-            args.append('-DH5LZF_RESOURCES_DIR:STRING=/scr/hyoklee/src/hdf5_plugins/LZF/config/cmake')
-            args.append('-DPLUGIN_PACKAGE_NAME:STRING=pl')
-            args.append('-DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=ON')
-            args.append('-DPLUGIN_USE_EXTERNAL:BOOL=ON')
-            # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=GIT')
-            args.append('-DBUILD_SHARED_LIBS:BOOL=ON')
-            # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
-            args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
-            args.append('-DTGZPATH:STRING=/scr/hyoklee/x')
-            args.append('-DHDF5_PACKAGE_EXTLIBS:BOOL=ON')
-            #args.append('-DENABLE_ZLIB:BOOL=OFF')
-            #args.append('-DENABLE_SZIP:BOOL=OFF')
-            args.append('-DBUILD_TESTING:BOOL=ON')
-            # args.append('-DPLUGIN_URL:STRING=file://scr/hyoklee/src/hdf5_plugins/
-
     def cmake_use_cacheinit(self, args):
         # The following will not work.
         # args.append('-C /scr/hyoklee/src/hdf5-byrn/config/cmake/cacheinit.cmake')
@@ -305,16 +273,18 @@ class Hdf5Cmake(CMakePackage):
         cf = self.build_directory+'/../spack-src/config/cmake/cacheinit.cmake'
         args.append(cf)
         args.append('-DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=ON')
-
+        args.append('-DPLUGIN_GIT_URL:STRING=https://github.com/hyoklee/hdf5_plugins.git')
+        # Use git instead of tar.gz archives.
         args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=GIT')
 
+        # If you want to use tar.gz, use the followings.
         # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
         # args.append('-DTGZPATH:STRING=/scr/hyoklee/x')
-        args.append('-DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF')
-        args.append('-DHDF5_ENABLE_SZIP_ENCODING:BOOL=OFF')
+        # args.append('-DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF')
+        # args.append('-DHDF5_ENABLE_SZIP_ENCODING:BOOL=OFF')
         # args.append('-DPLUGIN_GIT_URL:STRING=https://bitbucket.hdfgroup.org/scm/test/hdf5_plugins.git')
         # args.append('-DPLUGIN_GIT_URL:STRING=https://hyoklee@bitbucket.hdfgroup.org/scm/~hyoklee/hdf5_plugins.git')
-        args.append('-DPLUGIN_GIT_URL:STRING=https://github.com/hyoklee/hdf5_plugins.git')
+
         # args.append('-DENABLE_JPEG:BOOL=OFF')
         # args.append('-DENABLE_BZIP2:BOOL=OFF')
         # args.append('-DENABLE_BLOSC:BOOL=OFF')
@@ -356,6 +326,9 @@ class Hdf5Cmake(CMakePackage):
             args.append(
                 '-DSZIP_DIR:PATH={0}'.format(
                     self.spec['szip'].prefix.lib))
+        else:
+            args.append('-DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF')
+
 
         # Build plugin filters.
         self.cmake_use_cacheinit(args)

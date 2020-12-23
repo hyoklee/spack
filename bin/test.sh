@@ -14,6 +14,9 @@ h5dump-shared /scr/hyoklee/data/test_zfp_be.h5
 set p="`./spack find --paths hdf5-cmake | tail  -1 | cut -d' ' -f 3-`"
 setenv HDF5_PLUGIN_PATH $p/lib/plugin/
 
+# Show installed plugin.
+ls $p/lib/plugin/
+
 # These tests will succeed.
 h5dump-shared /scr/hyoklee/data/test_zfp_be.h5
 h5dump-shared /scr/hyoklee/data/test_zfp_le.h5
