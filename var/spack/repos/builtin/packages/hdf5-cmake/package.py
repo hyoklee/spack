@@ -19,7 +19,7 @@ class Hdf5Cmake(CMakePackage):
     url      = "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.7/src/hdf5-1.10.7.tar.gz"
     list_url = "https://support.hdfgroup.org/ftp/HDF5/releases"
     list_depth = 3
-    # git      = "https://github.com/HDFGroup/hdf5.git"
+    # git = "https://github.com/HDFGroup/hdf5.git"
     # git = "https://github.com/byrnHDF/hdf5.git"
     git = "https://github.com/hyoklee/hdf5.git"
     maintainers = ['lrknox']
@@ -82,14 +82,14 @@ class Hdf5Cmake(CMakePackage):
     variant('api', default='none', description='Choose api compatibility', values=('none', 'v114', 'v112', 'v110', 'v18', 'v16'), multi=False)
 
     # Build filter plugins.
-    variant('blosc', default=False, description='Enable blosc support')
-    variant('bshuf', default=False, description='Enable bshuf support')
-    variant('bz2', default=False, description='Enable bz2 support')
-    variant('jpeg', default=False, description='Enable jpeg support')
-    variant('lz4', default=False, description='Enable lz4 support')
+    variant('blosc', default=True, description='Enable blosc support')
+    variant('bshuf', default=True, description='Enable bshuf support')
+    variant('bz2', default=True, description='Enable bz2 support')
+    variant('jpeg', default=True, description='Enable jpeg support')
+    variant('lz4', default=True, description='Enable lz4 support')
     variant('lzf', default=True, description='Enable lzf support')
-    variant('szf', default=False, description='Enable szf support')
-    variant('zfp', default=False, description='Enable zfp support')
+    variant('szf', default=True, description='Enable szf support')
+    variant('zfp', default=True, description='Enable zfp support')
 
 
     conflicts('api=v114', when='@1.6:1.12.99', msg='v114 is not compatible with this release')
@@ -355,7 +355,8 @@ class Hdf5Cmake(CMakePackage):
             args.append(
                 '-DSZIP_DIR:PATH={0}'.format(
                     self.spec['szip'].prefix.lib))
-
+        # Build plugin filters.
+        self.cmake_use_cacheinit(args)
         if '+blosc' in self.spec:
             args.append('-DENABLE_BLOSC:BOOL=ON')
 
@@ -368,12 +369,11 @@ class Hdf5Cmake(CMakePackage):
         if '+jpeg' in self.spec:
             args.append('-DENABLE_JPEG:BOOL=ON')
 
-        if '+lz4' in self.spec:
-            args.append('-DENABLE_LZ4:BOOL=ON')
+        if '~lz4' in self.spec:
+            args.append('-DENABLE_LZ4:BOOL=OFF')
 
-        if '+lzf' in self.spec:
-            self.cmake_use_cacheinit(args)
-            args.append('-DENABLE_LZF:BOOL=ON')
+        if '~lzf' in self.spec:
+            args.append('-DENABLE_LZF:BOOL=OFF')
 
         if '+zfp' in self.spec:
             args.append('-DENABLE_ZFP:BOOL=ON')
