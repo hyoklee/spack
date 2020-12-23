@@ -20,9 +20,8 @@ class Hdf5Cmake(CMakePackage):
     list_url = "https://support.hdfgroup.org/ftp/HDF5/releases"
     list_depth = 3
     #git = "https://github.com/HDFGroup/hdf5.git"
-    # git = "https://github.com/byrnHDF/hdf5.git"
     git = "https://github.com/hyoklee/hdf5.git"
-    maintainers = ['lrknox']
+    maintainers = ['lrknox', 'hyoklee']
 
     version('develop', branch='develop', preferred=True)
     version('develop-1.12', branch='hdf5_1_12')
@@ -60,9 +59,7 @@ class Hdf5Cmake(CMakePackage):
     variant('shared', default=True,
             description='Builds a shared version of the library')
     variant('static', default=True,
-    #variant('static', default=False,
             description='Builds a static version of the library')
-
     conflicts('~static', '~shared')
 
     variant('hl', default=False, description='Enable the high-level library')
@@ -280,14 +277,6 @@ class Hdf5Cmake(CMakePackage):
         # If you want to use tar.gz, use the followings.
         # args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ')
         # args.append('-DTGZPATH:STRING=/scr/hyoklee/x')
-        # args.append('-DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF')
-        # args.append('-DHDF5_ENABLE_SZIP_ENCODING:BOOL=OFF')
-        # args.append('-DPLUGIN_GIT_URL:STRING=https://bitbucket.hdfgroup.org/scm/test/hdf5_plugins.git')
-        # args.append('-DPLUGIN_GIT_URL:STRING=https://hyoklee@bitbucket.hdfgroup.org/scm/~hyoklee/hdf5_plugins.git')
-
-        # args.append('-DENABLE_JPEG:BOOL=OFF')
-        # args.append('-DENABLE_BZIP2:BOOL=OFF')
-        # args.append('-DENABLE_BLOSC:BOOL=OFF')
 
     def cmake_args(self):
 
