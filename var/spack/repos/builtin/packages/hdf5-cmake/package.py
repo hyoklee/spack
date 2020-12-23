@@ -315,9 +315,10 @@ class Hdf5Cmake(CMakePackage):
         # args.append('-DPLUGIN_GIT_URL:STRING=https://bitbucket.hdfgroup.org/scm/test/hdf5_plugins.git')
         # args.append('-DPLUGIN_GIT_URL:STRING=https://hyoklee@bitbucket.hdfgroup.org/scm/~hyoklee/hdf5_plugins.git')
         args.append('-DPLUGIN_GIT_URL:STRING=https://github.com/hyoklee/hdf5_plugins.git')
-        args.append('-DENABLE_JPEG:BOOL=OFF')
-        args.append('-DENABLE_BZIP2:BOOL=OFF')
-        args.append('-DENABLE_BLOSC:BOOL=OFF')
+        # args.append('-DENABLE_JPEG:BOOL=OFF')
+        # args.append('-DENABLE_BZIP2:BOOL=OFF')
+        # args.append('-DENABLE_BLOSC:BOOL=OFF')
+
     def cmake_args(self):
 
         # Always enable this option. This does not actually enable any
@@ -355,19 +356,20 @@ class Hdf5Cmake(CMakePackage):
             args.append(
                 '-DSZIP_DIR:PATH={0}'.format(
                     self.spec['szip'].prefix.lib))
+
         # Build plugin filters.
         self.cmake_use_cacheinit(args)
-        if '+blosc' in self.spec:
-            args.append('-DENABLE_BLOSC:BOOL=ON')
+        if '~blosc' in self.spec:
+            args.append('-DENABLE_BLOSC:BOOL=OFF')
 
-        if '+bshuf' in self.spec:
-            args.append('-DENABLE_BSHUF:BOOL=ON')
+        if '~bshuf' in self.spec:
+            args.append('-DENABLE_BSHUF:BOOL=OFF')
 
-        if '+bz2' in self.spec:
-            args.append('-DENABLE_BZIP2:BOOL=ON')
+        if '~bz2' in self.spec:
+            args.append('-DENABLE_BZIP2:BOOL=OFF')
 
-        if '+jpeg' in self.spec:
-            args.append('-DENABLE_JPEG:BOOL=ON')
+        if '~jpeg' in self.spec:
+            args.append('-DENABLE_JPEG:BOOL=OFF')
 
         if '~lz4' in self.spec:
             args.append('-DENABLE_LZ4:BOOL=OFF')
@@ -375,11 +377,11 @@ class Hdf5Cmake(CMakePackage):
         if '~lzf' in self.spec:
             args.append('-DENABLE_LZF:BOOL=OFF')
 
-        if '+zfp' in self.spec:
-            args.append('-DENABLE_ZFP:BOOL=ON')
+        if '~zfp' in self.spec:
+            args.append('-DENABLE_ZFP:BOOL=OFF')
 
-        if '+szf' in self.spec:
-            args.append('-DENABLE_SZF:BOOL=ON')
+        if '~szf' in self.spec:
+            args.append('-DENABLE_SZF:BOOL=OFF')
 
         if '+mpi' in self.spec:
             args.append('-DHDF5_ENABLE_PARALLEL=ON')
