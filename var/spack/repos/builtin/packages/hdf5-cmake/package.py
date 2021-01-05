@@ -87,7 +87,7 @@ class Hdf5Cmake(CMakePackage):
     variant('lzf', default=True, description='Enable lzf support')
     variant('szf', default=True, description='Enable szf support')
     variant('zfp', default=True, description='Enable zfp support')
-
+    variant('zstd', default=True, description='Enable zstd support')
 
     conflicts('api=v114', when='@1.6:1.12.99', msg='v114 is not compatible with this release')
     conflicts('api=v114', when='@:develop-1.12.99', msg='v114 is not compatible with this release')
@@ -344,6 +344,9 @@ class Hdf5Cmake(CMakePackage):
 
         if '~szf' in self.spec:
             args.append('-DENABLE_SZF:BOOL=OFF')
+
+        if '~zstd' in self.spec:
+            args.append('-DENABLE_ZSTD:BOOL=OFF')
 
         if '+mpi' in self.spec:
             args.append('-DHDF5_ENABLE_PARALLEL=ON')
