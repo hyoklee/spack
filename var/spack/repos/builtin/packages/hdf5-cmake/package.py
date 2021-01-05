@@ -107,6 +107,7 @@ class Hdf5Cmake(CMakePackage):
         depends_on('numactl', when='+mpi+fortran')
     depends_on('szip', when='+szip')
     depends_on('zlib@1.2.5:', when='+zlib')
+    depends_on('zstd', when='+zstd')
 
     # The Java wrappers and associated libhdf5_java library
     # were first available in 1.10
@@ -347,6 +348,13 @@ class Hdf5Cmake(CMakePackage):
 
         if '~zstd' in self.spec:
             args.append('-DENABLE_ZSTD:BOOL=OFF')
+        else:
+            args.append(
+                '-DZSTD_INCLUDE_DIR:PATH={0}'.format(
+                    self.spec['zstd'].prefix.include))
+            args.append(
+                '-DZSTD_DIR:PATH={0}'.format(
+                    self.spec['zstd'].prefix.lib))
 
         if '+mpi' in self.spec:
             args.append('-DHDF5_ENABLE_PARALLEL=ON')
