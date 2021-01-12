@@ -88,6 +88,7 @@ class Hdf5Cmake(CMakePackage):
     variant('szf', default=True, description='Enable szf support')
     variant('zfp', default=True, description='Enable zfp support')
     variant('zstd', default=True, description='Enable zstd support')
+    variant('bitgroom', default=True, description='Enable bitgroom support')
 
     conflicts('api=v114', when='@1.6:1.12.99', msg='v114 is not compatible with this release')
     conflicts('api=v114', when='@:develop-1.12.99', msg='v114 is not compatible with this release')
@@ -355,6 +356,9 @@ class Hdf5Cmake(CMakePackage):
             args.append(
                 '-DZSTD_DIR:PATH={0}'.format(
                     self.spec['zstd'].prefix.lib))
+
+        if '~bitgroom' in self.spec:
+            args.append('-DENABLE_BITGROOM:BOOL=OFF')
 
         if '+mpi' in self.spec:
             args.append('-DHDF5_ENABLE_PARALLEL=ON')
