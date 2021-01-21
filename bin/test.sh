@@ -22,3 +22,7 @@ h5dump-shared /scr/hyoklee/data/test_zfp_be.h5
 h5dump-shared /scr/hyoklee/data/test_zfp_le.h5
 h5dump-shared /scr/hyoklee/data/test_sz.h5
 h5dump-shared /scr/hyoklee/data/h5ex_d_zstandard.h5
+h5repack-shared -v -f GZIP=1 /scr/hyoklee/data/h5ex_d_zstandard.h5 test_zstd.h5
+h5repack-shared -v -f UD=32015,1,3 test_zstd.h5 test_zstandard.h5
+h5repack -v -f UD=32015,1,3 test_zstd.h5 test_zstandard.h5
+
