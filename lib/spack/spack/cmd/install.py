@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -43,6 +43,7 @@ def update_kwargs_from_args(args, kwargs):
         'dirty': args.dirty,
         'use_cache': args.use_cache,
         'cache_only': args.cache_only,
+        'include_build_deps': args.include_build_deps,
         'explicit': True,  # Always true for install command
         'stop_at': args.until,
         'unsigned': args.unsigned,
@@ -106,6 +107,11 @@ the dependencies"""
         help="only install package from binary mirrors")
 
     subparser.add_argument(
+        '--include-build-deps', action='store_true', dest='include_build_deps',
+        default=False, help="""include build deps when installing from cache,
+which is useful for CI pipeline troubleshooting""")
+
+    subparser.add_argument(
         '--no-check-signature', action='store_true',
         dest='unsigned', default=False,
         help="do not check signatures of binary packages")
@@ -167,65 +173,8 @@ packages. If neither are chosen, don't run tests for any packages."""
         action='store_true',
         help="Show usage instructions for CDash reporting"
     )
-    subparser.add_argument(
-        '-y', '--yes-to-all',
-        action='store_true',
-        dest='yes_to_all',
-        help="""assume "yes" is the answer to every confirmation request.
-To run completely non-interactively, also specify '--no-checksum'."""
-    )
-    add_cdash_args(subparser, False)
-    arguments.add_common_arguments(subparser, ['spec'])
-
-
-def add_cdash_args(subparser, add_help):
-    cdash_help = {}
-    if add_help:
-        cdash_help['upload-url'] = "CDash URL where reports will be uploaded"
-        cdash_help['build'] = """The name of the build that will be reported to CDash.
-Defaults to spec of the package to install."""
-        cdash_help['site'] = """The site name that will be reported to CDash.
-Defaults to current system hostname."""
-        cdash_help['track'] = """Results will be reported to this group on CDash.
-Defaults to Experimental."""
-        cdash_help['buildstamp'] = """Instead of letting the CDash reporter prepare the
-buildstamp which, when combined with build name, site and project,
-uniquely identifies the build, provide this argument to identify
-the build yourself.  Format: %%Y%%m%%d-%%H%%M-[cdash-track]"""
-    else:
-        cdash_help['upload-url'] = argparse.SUPPRESS
-        cdash_help['build'] = argparse.SUPPRESS
-        cdash_help['site'] = argparse.SUPPRESS
-        cdash_help['track'] = argparse.SUPPRESS
-        cdash_help['buildstamp'] = argparse.SUPPRESS
-
-    subparser.add_argument(
-        '--cdash-upload-url',
-        default=None,
-        help=cdash_help['upload-url']
-    )
-    subparser.add_argument(
-        '--cdash-build',
-        default=None,
-        help=cdash_help['build']
-    )
-    subparser.add_argument(
-        '--cdash-site',
-        default=None,
-        help=cdash_help['site']
-    )
-
-    cdash_subgroup = subparser.add_mutually_exclusive_group()
-    cdash_subgroup.add_argument(
-        '--cdash-track',
-        default='Experimental',
-        help=cdash_help['track']
-    )
-    cdash_subgroup.add_argument(
-        '--cdash-buildstamp',
-        default=None,
-        help=cdash_help['buildstamp']
-    )
+    arguments.add_cdash_args(subparser, False)
+    arguments.add_common_arguments(subparser, ['yes_to_all', 'spec'])
 
 
 def default_log_file(spec):
@@ -283,11 +232,12 @@ environment variables:
   SPACK_CDASH_AUTH_TOKEN
                         authentication token to present to CDash
                         '''))
-        add_cdash_args(parser, True)
+        arguments.add_cdash_args(parser, True)
         parser.print_help()
         return
 
-    reporter = spack.report.collect_info(args.log_format, args)
+    reporter = spack.report.collect_info(
+        spack.package.PackageInstaller, '_install_task', args.log_format, args)
     if args.log_file:
         reporter.filename = args.log_file
 
@@ -311,7 +261,7 @@ environment variables:
             reporter.specs = specs
 
             tty.msg("Installing environment {0}".format(env.name))
-            with reporter:
+            with reporter('build'):
                 env.install_all(args, **kwargs)
 
             tty.debug("Regenerating environment views for {0}"
@@ -383,7 +333,7 @@ environment variables:
     if not args.log_file and not reporter.filename:
         reporter.filename = default_log_file(specs[0])
     reporter.specs = specs
-    with reporter:
+    with reporter('build'):
         if args.overwrite:
 
             installed = list(filter(lambda x: x,

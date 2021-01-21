@@ -1,4 +1,4 @@
-.. Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+.. Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
    Spack Project Developers. See the top-level COPYRIGHT file for details.
 
    SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -815,8 +815,10 @@ environment for Spack commands. The arguments ``-v,--with-view`` and
 behavior is to activate with the environment view if there is one.
 
 The environment variables affected by the ``spack env activate``
-command and the paths that are used to update them are in the
-following table.
+command and the paths that are used to update them are determined by
+the :ref:`prefix inspections <customize-env-modifications>` defined in
+your modules configuration; the defaults are summarized in the following
+table.
 
 =================== =========
 Variable            Paths
