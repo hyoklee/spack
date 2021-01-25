@@ -20,10 +20,11 @@ class Hdf5Cmake(CMakePackage):
     list_url = "https://support.hdfgroup.org/ftp/HDF5/releases"
     list_depth = 3
     # git = "https://github.com/HDFGroup/hdf5.git"
-    git = "https://github.com/hyoklee/hdf5.git"
+    # git = "https://github.com/hyoklee/hdf5.git"
+    git = "https://github.com/hpc-io/hdf5.git"
     maintainers = ['lrknox', 'hyoklee']
-
-    version('develop', branch='develop', preferred=True)
+    version('async', branch='async_vol_register_optional', preferred=True)
+    # version('develop', branch='develop', preferred=True)
     version('develop-1.12', branch='hdf5_1_12')
     version('develop-1.10', branch='hdf5_1_10')
     version('develop-1.8', branch='hdf5_1_8')
@@ -90,6 +91,8 @@ class Hdf5Cmake(CMakePackage):
     variant('zstd', default=True, description='Enable zstd support')
     variant('bitgroom', default=True, description='Enable bitgroom support')
     variant('mafisc', default=True, description='Enable mafisc support')
+    variant('pv', default=False, description='Enable pass-through ext. VOL')
+    variant('av', default=True, description='Enable async VOL')
 
     conflicts('api=v114', when='@1.6:1.12.99', msg='v114 is not compatible with this release')
     conflicts('api=v114', when='@:develop-1.12.99', msg='v114 is not compatible with this release')
@@ -110,6 +113,7 @@ class Hdf5Cmake(CMakePackage):
     depends_on('szip', when='+szip')
     depends_on('zlib@1.2.5:', when='+zlib')
     depends_on('zstd', when='+zstd')
+    depends_on('argobots', when='+av')
 
     # The Java wrappers and associated libhdf5_java library
     # were first available in 1.10
