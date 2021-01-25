@@ -2,7 +2,8 @@
 ./spack uninstall --all --force --yes-to-all hdf5-cmake
 rm -rf ~/.spack/cache
 rm -rf /tmp/hyoklee
-./spack install hdf5-cmake
+# ./spack install hdf5-cmake
+./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom~pv
 source ../share/spack/setup-env.csh
 spack load hdf5-cmake
 
