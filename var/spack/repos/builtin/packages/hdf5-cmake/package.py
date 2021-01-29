@@ -20,11 +20,11 @@ class Hdf5Cmake(CMakePackage):
     list_url = "https://support.hdfgroup.org/ftp/HDF5/releases"
     list_depth = 3
     # git = "https://github.com/HDFGroup/hdf5.git"
-    # git = "https://github.com/hyoklee/hdf5.git"
-    git = "https://github.com/hpc-io/hdf5.git"
+    git = "https://github.com/hyoklee/hdf5.git"
+    # git = "https://github.com/hpc-io/hdf5.git"
     maintainers = ['lrknox', 'hyoklee']
-    version('async', branch='async_vol_register_optional', preferred=True)
-    # version('develop', branch='develop', preferred=True)
+    # version('async', branch='async_vol_register_optional', preferred=True)
+    version('develop', branch='develop', preferred=True)
     version('develop-1.12', branch='hdf5_1_12')
     version('develop-1.10', branch='hdf5_1_10')
     version('develop-1.8', branch='hdf5_1_8')
@@ -367,6 +367,15 @@ class Hdf5Cmake(CMakePackage):
 
         if '~mafisc' in self.spec:
             args.append('-DENABLE_MAFISC:BOOL=OFF')
+
+        if '~pv' in self.spec:
+            args.append('-DENABLE_PV:BOOL=OFF')
+
+        if '~av' in self.spec:
+            args.append('-DENABLE_AV:BOOL=OFF')
+
+        if '~cv' in self.spec:
+            args.append('-DENABLE_CV:BOOL=OFF')
 
         if '+mpi' in self.spec:
             args.append('-DHDF5_ENABLE_PARALLEL=ON')
