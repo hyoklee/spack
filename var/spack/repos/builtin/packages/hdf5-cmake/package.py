@@ -21,10 +21,13 @@ class Hdf5Cmake(CMakePackage):
     list_depth = 3
     # git = "https://github.com/HDFGroup/hdf5.git"
     git = "https://github.com/hyoklee/hdf5.git"
+
     # git = "https://github.com/hpc-io/hdf5.git"
-    maintainers = ['lrknox', 'hyoklee']
     # version('async', branch='async_vol_register_optional', preferred=True)
-    version('develop', branch='develop', preferred=True)
+    maintainers = ['lrknox', 'hyoklee']
+
+    # version('develop', branch='develop', preferred=True)
+    version('develop', branch='OESS-126', preferred=True)
     version('develop-1.12', branch='hdf5_1_12')
     version('develop-1.10', branch='hdf5_1_10')
     version('develop-1.8', branch='hdf5_1_8')
@@ -91,8 +94,9 @@ class Hdf5Cmake(CMakePackage):
     variant('zstd', default=True, description='Enable zstd support')
     variant('bitgroom', default=True, description='Enable bitgroom support')
     variant('mafisc', default=True, description='Enable mafisc support')
-    variant('pv', default=False, description='Enable pass-through ext. VOL')
+    variant('pv', default=True, description='Enable pass-through ext. VOL')
     variant('av', default=True, description='Enable async VOL')
+    variant('cv', default=True, description='Enable cache VOL')
 
     conflicts('api=v114', when='@1.6:1.12.99', msg='v114 is not compatible with this release')
     conflicts('api=v114', when='@:develop-1.12.99', msg='v114 is not compatible with this release')
