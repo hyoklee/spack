@@ -5,7 +5,9 @@ rm -rf /tmp/hyoklee
 # ./spack install hdf5-cmake
 
 # This is for CV.
-./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom~av+mpi
+# ./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom~av+mpi
+
+./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom+av~pv~cv+mpi
 source ../share/spack/setup-env.csh
 spack load hdf5-cmake
 
