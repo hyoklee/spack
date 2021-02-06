@@ -5,10 +5,13 @@ rm -rf /tmp/hyoklee
 # ./spack install hdf5-cmake
 
 # This is for Cache VOL.
-./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom+cv+mpi
+#./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom+cv+mpi
 
 # This is for Async VOL.
 # ./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom+av~pv~cv+mpi+threadsafe
+
+# This is for all VOLs.
+./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom+av+cv+pv+mpi+threadsafe
 source ../share/spack/setup-env.csh
 spack load hdf5-cmake
 

@@ -94,9 +94,9 @@ class Hdf5Cmake(CMakePackage):
     variant('zstd', default=True, description='Enable zstd support')
     variant('bitgroom', default=True, description='Enable bitgroom support')
     variant('mafisc', default=True, description='Enable mafisc support')
-    variant('pv', default=True, description='Enable pass-through ext. VOL')
-    variant('av', default=True, description='Enable async VOL')
-    variant('cv', default=True, description='Enable cache VOL')
+    variant('pv', default=False, description='Enable pass-through ext. VOL')
+    variant('av', default=False, description='Enable async VOL')
+    variant('cv', default=False, description='Enable cache VOL')
 
     conflicts('api=v114', when='@1.6:1.12.99', msg='v114 is not compatible with this release')
     conflicts('api=v114', when='@:develop-1.12.99', msg='v114 is not compatible with this release')
