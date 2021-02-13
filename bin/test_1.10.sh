@@ -6,17 +6,6 @@ rm -rf /tmp/hyoklee
 # This is for all filters + Pass-through VOL using develop branch.
 ./spack install hdf5-cmake@develop-1.10
 
-# This is for Cache VOL using OESS-126 branch.
-# ./spack install hdf5-cmake@develop-1.10+pv+cv+av+mpi+threadsafe
-
-# This is for Cache VOL using OESS-126 branch.
-#./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom+cv+mpi
-
-# This is for Async VOL.
-# ./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom+av~pv~cv+mpi+threadsafe
-
-# This is for all VOLs.
-#./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom+av+cv+pv+mpi+threadsafe
 source ../share/spack/setup-env.csh
 spack load hdf5-cmake
 
