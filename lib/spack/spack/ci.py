@@ -866,7 +866,8 @@ def generate_gitlab_ci_yaml(env, print_summary, output_file, prune_dag=False,
                     'retry': {
                         'max': 2,
                         'when': JOB_RETRY_CONDITIONS,
-                    }
+                    },
+                    'interruptible': True
                 }
 
                 length_needs = len(job_dependencies)
@@ -1290,7 +1291,9 @@ def push_mirror_contents(env, spec, yaml_path, mirror_url, build_id,
             if 'Access Denied' in err_msg:
                 tty.msg('Permission problem writing to {0}'.format(
                     mirror_url))
-            tty.msg(err_msg)
+                tty.msg(err_msg)
+            else:
+                raise inst
 
 
 def copy_stage_logs_to_artifacts(job_spec, job_log_dir):
