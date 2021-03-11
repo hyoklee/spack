@@ -2,7 +2,7 @@
 ./spack uninstall --all --force --yes-to-all py-h5py
 rm -rf ~/.spack/cache
 rm -rf /tmp/hyoklee
-./spack install py-h5py ^openblas@develop
+./spack install py-h5py@master ^openblas@develop
 ./spack install py-pytest
 ./spack install py-ipython
 ./spack install py-pip
