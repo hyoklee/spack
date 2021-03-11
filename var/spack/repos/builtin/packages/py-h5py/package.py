@@ -48,15 +48,19 @@ class PyH5py(PythonPackage):
     depends_on('hdf5@1.8.4:+hl', when='@3.0.0:')
 
     # MPI dependencies
-    depends_on('hdf5+mpi', when='+mpi')
-    depends_on('hdf5~mpi', when='~mpi')
+    # depends_on('hdf5+mpi', when='+mpi')
+    # depends_on('hdf5~mpi', when='~mpi')
+    depends_on('hdf5-cmake+mpi', when='+mpi')
+    depends_on('hdf5-cmake~mpi', when='~mpi')
+
     depends_on('mpi', when='+mpi')
     depends_on('py-mpi4py', when='+mpi', type=('build', 'run'))
 
     phases = ['configure', 'install']
 
     def setup_build_environment(self, env):
-        env.set('HDF5_DIR', self.spec['hdf5'].prefix)
+        # env.set('HDF5_DIR', self.spec['hdf5'].prefix)
+        env.set('HDF5_DIR', self.spec['hdf5-cmake'].prefix)
         if '+mpi' in self.spec:
             env.set('CC', self.spec['mpi'].mpicc)
             env.set('HDF5_MPI', 'ON')
@@ -67,7 +71,9 @@ class PyH5py(PythonPackage):
 
     @when('@:2.99')
     def configure(self, spec, prefix):
-        self.setup_py('configure', '--hdf5={0}'.format(spec['hdf5'].prefix),
-                      '--hdf5-version={0}'.format(spec['hdf5'].version))
+        #self.setup_py('configure', '--hdf5={0}'.format(spec['hdf5'].prefix),
+        #              '--hdf5-version={0}'.format(spec['hdf5'].version))
+        self.setup_py('configure', '--hdf5={0}'.format(spec['hdf5-cmake'].prefix),
+                      '--hdf5-version={0}'.format(spec['hdf5-cmake'].version))
         if '+mpi' in spec:
             self.setup_py('configure', '--mpi')
