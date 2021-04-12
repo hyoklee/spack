@@ -1,4 +1,4 @@
-#!/usr/bin/tcsh
+#!/bin/tcsh
 ./spack uninstall --all --force --yes-to-all hdf5-cmake
 rm -rf ~/.spack/cache
 rm -rf /tmp/hyoklee
@@ -7,7 +7,8 @@ rm -rf /tmp/hyoklee
 # ./spack install hdf5-cmake+pv
 
 # This is for Cache VOL using OESS-126 branch.
-./spack install hdf5-cmake+pv+cv+av+mpi+threadsafe
+# ./spack install hdf5-cmake+pv+cv+av+mpi+threadsafe
+./spack install hdf5-cmake@av~zfp~mafisc~szip~zstd~blosc~bshuf~bitgroom~av~pv~cv+mpi+threadsafe
 
 # This is for Cache VOL using OESS-126 branch.
 #./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom+cv+mpi

@@ -1,7 +1,7 @@
 #!/bin/tcsh
 ./spack uninstall --all --force --yes-to-all py-h5py
 rm -rf ~/.spack/cache
-rm -rf /var/folders/ff/t85lbw0x7lgdrcxqf7sz33rr0009rr/T/hyoklee/spack-stage
+rm -rf /var/folders/ff/*/T/hyoklee/spack-stage
 ./spack install py-h5py@master ^openblas@develop
 ./spack install py-pytest
 ./spack install py-ipython

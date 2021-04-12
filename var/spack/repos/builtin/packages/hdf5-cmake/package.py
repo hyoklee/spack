@@ -27,6 +27,9 @@ class Hdf5Cmake(CMakePackage):
     maintainers = ['lrknox', 'hyoklee']
 
     # version('develop', branch='develop', preferred=True)
+    version('av', branch='async_vol_register_optional',
+            git='https://github.com/hpc-io/hdf5.git',
+            preferred=True)
     version('develop', branch='OESS-126', preferred=True)
     version('develop-1.12', branch='hdf5_1_12')
     version('develop-1.10', branch='hdf5_1_10')
