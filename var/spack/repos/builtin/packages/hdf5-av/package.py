@@ -20,7 +20,7 @@ class Hdf5Av(CMakePackage):
             description='Builds a debug version of the library')
     variant('shared', default=True,
             description='Builds a shared version of the library')
-    variant('threadsafe', default=False,
+    variant('threadsafe', default=True,
             description='Enable thread-safe capabilities')
     variant('tools', default=True, description='Enable build tools')
     variant('mpi', default=True, description='Enable MPI support')
@@ -37,7 +37,9 @@ class Hdf5Av(CMakePackage):
     # depends_on('zlib@1.2.5:', when='+zlib')
     # depends_on('zstd', when='+zstd')
     depends_on('argobots@main')
-    patch('cacheinit.patch')
+
+    # patch('cmake.patch')
+    patch('cacheinit.patch')    
     # The argument 'buf_size' of the C function 'h5fget_file_image_c' is
     # declared as intent(in) though it is modified by the invocation. As a
     # result, aggressive compilers such as Fujitsu's may do a wrong
