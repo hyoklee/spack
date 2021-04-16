@@ -11,17 +11,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout hdf-spack
-      uses: actions/checkout@v2
     - name: Checkout spack
       uses: actions/checkout@v2
-      with:
-        repository: spack/spack
-        path: ./spack
 
     - name: Run a multi-line script
       run: |
-        . ./spack/share/spack/setup-env.sh
+        . ./share/spack/setup-env.sh
         spack repo add .
         spack repo list
         spack install hdf5-av
