@@ -1,0 +1,13 @@
+diff --git a/src/Makefile b/src/Makefile
+index 001d3bf..9dbab23 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -1,7 +1,7 @@
+ HDF5_DIR = /global/u1/h/houhun/hpc-io/hdf5/async_optional_gnu/hdf5
+ ABT_DIR = /global/u1/h/houhun/cori/argobots/install
+ 
+-CC = cc
++CC = h5cc
+ #CC = gcc-9
+ # CC = mpicc
+ 
