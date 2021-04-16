@@ -16,6 +16,8 @@ jobs:
 
     - name: Run a multi-line script
       run: |
+        pwd
+        ls
         . ./share/spack/setup-env.sh
         spack repo add .
         spack repo list
