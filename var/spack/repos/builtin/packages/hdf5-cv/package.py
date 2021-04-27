@@ -11,11 +11,11 @@
 # next to all the things you'll want to change. Once you've handled
 # them, you can save this file and test your package like this:
 #
-#     spack install hdf5-pv
+#     spack install hdf5-cv
 #
 # You can edit this file again by typing:
 #
-#     spack edit hdf5-pv
+#     spack edit hdf5-cv
 #
 # See the Spack documentation for more information on packaging.
 # ----------------------------------------------------------------------------
@@ -23,26 +23,27 @@
 from spack import *
 
 
-class Hdf5Pv(CMakePackage):
-    """Package for HDF5 pass-through VOL."""
+class Hdf5Cv(CMakePackage):
+    """Package for HDF5 cache VOL."""
 
     homepage = "https://sdm.lbl.gov/"
-    git      = "https://github.com/hpc-io/vol-external-passthrough.git"
+    git      = "https://github.com/hpc-io/vol-cache.git"
 
     maintainers = ['hyoklee']
 
-    version('default', branch='async_vol_register_optional')
-    version('cmake', branch='async_vol_register_optional',
-            git='https://github.com/hyoklee/vol-external-passthrough.git')
-    version('cmake-local', branch='async_vol_register_optional',
-            git='file:///mnt/d/vol-external-passthrough', preferred=True)
+    version('default', branch='master')
+    version('cmake', branch='master',
+            git='https://github.com/hyoklee/vol-cache.git')
+    version('cmake-local', branch='master',
+            git='file:///home/hyoklee/vol-cache', preferred=True)
     
     # Set hdf5-cmake package option.
-    o_flt = '~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom'
+    o_flt = '~zfp~mafisc~szip~zstd~blosc~bshuf~bitgroom'
     o_vol = '~av~pv~cv'
     o_par = '+mpi+threadsafe'
     o = o_flt+o_vol+o_par
-    depends_on('hdf5-cmake'+o)
+    # depends_on('hdf5-cmake@av'+o)
+    depends_on('hdf5-av')
     
     def cmake_args(self):
         """Populate cmake arguments for HDF5 DAOS."""
