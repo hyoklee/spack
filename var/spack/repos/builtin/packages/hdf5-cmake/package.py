@@ -19,17 +19,18 @@ class Hdf5Cmake(CMakePackage):
     url      = "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.7/src/hdf5-1.10.7.tar.gz"
     list_url = "https://support.hdfgroup.org/ftp/HDF5/releases"
     list_depth = 3
-    # git = "https://github.com/HDFGroup/hdf5.git"
-    git = "https://github.com/hyoklee/hdf5.git"
-
-    # git = "https://github.com/hpc-io/hdf5.git"
-    # version('async', branch='async_vol_register_optional', preferred=True)
+    git = "https://github.com/HDFGroup/hdf5.git"
     maintainers = ['lrknox', 'hyoklee']
 
-    # version('develop', branch='develop', preferred=True)
-    version('av', branch='async_vol_register_optional',
+    # Forked versions for VOLs
+    version('hpc-io.async_vol_register_optional', 
+            branch='async_vol_register_optional',
             git='https://github.com/hpc-io/hdf5.git')
-    version('develop', branch='OESS-126', preferred=True)
+    version('hyoklee.OESS-126', branch='OESS-126', 
+            git = "https://github.com/hyoklee/hdf5.git")
+
+    # Official HDF5 GitHub repository branches
+    version('develop', branch='develop', preferred=True)
     version('develop-1.12', branch='hdf5_1_12')
     version('develop-1.10', branch='hdf5_1_10')
     version('develop-1.8', branch='hdf5_1_8')
@@ -75,7 +76,6 @@ class Hdf5Cmake(CMakePackage):
     variant('threadsafe', default=False,
             description='Enable thread-safe capabilities')
     variant('tools', default=True, description='Enable build tools')
-    # variant('mpi', default=True, description='Enable MPI support')
     variant('mpi', default=False, description='Enable MPI support')
     variant('szip', default=True, description='Enable szip support')
     variant('zlib', default=True, description='Enable zlib support')

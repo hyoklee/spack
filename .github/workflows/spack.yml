@@ -17,6 +17,5 @@ jobs:
     - name: Run a multi-line script
       run: |
         . ./share/spack/setup-env.sh
-        spack install hdf5-av
-        spack install hdf-async
+        spack install hdf5-vol-async
         

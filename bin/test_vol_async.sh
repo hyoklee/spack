@@ -1,7 +1,7 @@
 #!/bin/tcsh
-# ./spack uninstall --all --force --yes-to-all hdf5-av
-# rm -rf ~/.spack/cache
-# rm -rf /tmp/hyoklee
+./spack uninstall --all --force --yes-to-all hdf5-vol-async
+rm -rf ~/.spack/cache
+rm -rf /tmp/hyoklee
 
 ./spack install hdf5-vol-async
 
