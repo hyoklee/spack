@@ -15,7 +15,7 @@ class Hdf5VolAsync(CMakePackage):
     version('async_vol_register_optional', branch='async_vol_register_optional')
     version('hyoklee.async_vol_register_optional',
             branch='async_vol_register_optional',
-            git = "https://github.com/hyoklee/vol-async"            
+            git='https://github.com/hyoklee/vol-async',            
             preferred=True)
 
     depends_on('argobots@main')
