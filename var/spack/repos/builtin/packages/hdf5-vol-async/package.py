@@ -11,11 +11,11 @@
 # next to all the things you'll want to change. Once you've handled
 # them, you can save this file and test your package like this:
 #
-#     spack install hdf5-cv
+#     spack install hdf-async
 #
 # You can edit this file again by typing:
 #
-#     spack edit hdf5-cv
+#     spack edit hdf-async
 #
 # See the Spack documentation for more information on packaging.
 # ----------------------------------------------------------------------------
@@ -23,28 +23,21 @@
 from spack import *
 
 
-class Hdf5Cv(CMakePackage):
-    """Package for HDF5 cache VOL."""
+class Hdf5VolAsync(CMakePackage):
+    """FIXME: Put a proper description of your package here."""
 
     homepage = "https://sdm.lbl.gov/"
-    git      = "https://github.com/hpc-io/vol-cache.git"
-
+    # git      = "https://github.com/hpc-io/vol-async"
+    git      = "https://github.com/hyoklee/vol-async"
     maintainers = ['hyoklee']
 
-    version('default', branch='master')
-    version('cmake', branch='master',
-            git='https://github.com/hyoklee/vol-cache.git')
-    version('cmake-local', branch='master',
-            git='file:///home/hyoklee/vol-cache', preferred=True)
-    
-    # Set hdf5-cmake package option.
-    o_flt = '~zfp~mafisc~szip~zstd~blosc~bshuf~bitgroom'
-    o_vol = '~av~pv~cv'
-    o_par = '+mpi+threadsafe'
-    o = o_flt+o_vol+o_par
-    # depends_on('hdf5-cmake@av'+o)
-    depends_on('hdf5-av')
-    
+    version('default', branch='async_vol_register_optional', preferred=True)
+
+    # FIXME: Add dependencies if required.
+    depends_on('hdf5-hpc-io')
+    # patch('Makefile.patch')
+    # patch('src_Makefile.patch')
+    # patch('test_Makefile.patch')
     def cmake_args(self):
         """Populate cmake arguments for HDF5 DAOS."""
         spec = self.spec
@@ -53,4 +46,14 @@ class Hdf5Cv(CMakePackage):
             '-DBUILD_SHARED_LIBS:BOOL=ON',
             '-DBUILD_TESTING:BOOL=ON'
         ]
+
         return args
+    
+
+    #def setup_run_environment(self, env):
+        # env.prepend_path('HDF5_PLUGIN_PATH', self.prefix.lib)
+        #env.prepend_path('HDF5_VOL_CONNECTOR',
+        #                 'async under_vol=0;under_info={}')        
+
+    def check(self):
+        make('test')

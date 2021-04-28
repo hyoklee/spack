@@ -23,7 +23,7 @@
 from spack import *
 
 
-class Hdf5Pv(CMakePackage):
+class Hdf5VolExternalPassthrough(CMakePackage):
     """Package for HDF5 pass-through VOL."""
 
     homepage = "https://sdm.lbl.gov/"
