@@ -5,21 +5,23 @@
 
 from spack import *
 
-
 class Hdf5VolAsync(CMakePackage):
     """This package enables asynchronous IO in HDF5."""
 
     homepage = "https://sdm.lbl.gov/"
-    # git      = "https://github.com/hpc-io/vol-async"
-    # git      = "https://github.com/hyoklee/vol-async"
-    git      = "/Users/hyoklee/src/vol-async"
+    git      = "https://github.com/hpc-io/vol-async"
     maintainers = ['hyoklee']
 
-    version('default', branch='async_vol_register_optional', preferred=True)
+    version('async_vol_register_optional', branch='async_vol_register_optional')
+    version('hyoklee.async_vol_register_optional',
+            branch='async_vol_register_optional',
+            git = "https://github.com/hyoklee/vol-async"            
+            preferred=True)
 
-    # FIXME: Add dependencies if required.
     depends_on('argobots@main')
     depends_on('hdf5-hpc-io')
+
+    # These are for testing with generic 'make' command.
     # patch('Makefile.patch')
     # patch('src_Makefile.patch')
     # patch('test_Makefile.patch')
