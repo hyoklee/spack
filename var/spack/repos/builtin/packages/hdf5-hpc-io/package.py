@@ -2,7 +2,9 @@
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
+#
+# This package builds hpc-io/hdf5 using CMake by applying patches.
+#
 import shutil
 import sys
 
@@ -11,7 +13,8 @@ from spack import *
 
 class Hdf5HpcIo(CMakePackage):
     git = "https://github.com/hpc-io/hdf5.git"
-    version('async_vol_register_optional', branch='async_vol_register_optional', 
+    version('async_vol_register_optional',
+            branch='async_vol_register_optional', 
             preferred=True)
     maintainers = ['hyoklee']
     variant('hl', default=False, description='Enable the high-level library')
@@ -34,12 +37,6 @@ class Hdf5HpcIo(CMakePackage):
     # numactl does not currently build on darwin
     if sys.platform != 'darwin':
         depends_on('numactl', when='+mpi+fortran')
-    # depends_on('szip', when='+szip')    
-    # depends_on('zlib@1.2.5:', when='+zlib')
-    # depends_on('zstd', when='+zstd')
-    depends_on('argobots@main')
-
-    # patch('cmake.patch')
     patch('cacheinit.patch')    
     # The argument 'buf_size' of the C function 'h5fget_file_image_c' is
     # declared as intent(in) though it is modified by the invocation. As a
@@ -120,16 +117,13 @@ class Hdf5HpcIo(CMakePackage):
 
 
     def cmake_use_cacheinit(self, args):
-        # The following will not work.
-        # args.append('-C /scr/hyoklee/src/hdf5-byrn/config/cmake/cacheinit.cmake')
-        # Instead, split the arguments like the following 
         args.append('-C')
-        # Use full path instead of 'config/cmake/cacheinit.cmake'.
-        # E.g., args.append('/scr/hyoklee/src/hdf5/config/cmake/cacheinit.cmake')
-        cf = self.build_directory+'/../spack-src/config/cmake/cacheinit.cmake'
+        ci = '/../spack-src/config/cmake/cacheinit.cmake'
+        cf = self.build_directory+ci
+        pgu = 'https://github.com/hyoklee/hdf5_plugins.git'
         args.append(cf)
-        args.append('-DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=ON')
-        args.append('-DPLUGIN_GIT_URL:STRING=https://github.com/hyoklee/hdf5_plugins.git')
+        args.append('-DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=OFF')
+        args.append('-DPLUGIN_GIT_URL:STRING='+pgu)
         # Use git instead of tar.gz archives.
         args.append('-DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=GIT')
 
@@ -170,16 +164,20 @@ class Hdf5HpcIo(CMakePackage):
                 '-DSZIP_DIR:PATH={0}'.format(
                     self.spec['szip'].prefix.lib))
 
-        # Build plugin filters.
+        # Initialize patched CMake settings.
         self.cmake_use_cacheinit(args)
+
+        # Define CMake options.
         if '+mpi' in self.spec:
+            c = self.spec['mpi'].mpicc
+            cxx = self.spec['mpi'].mpicxx
+            f = self.spec['mpi'].mpifc
             args.append('-DHDF5_ENABLE_PARALLEL=ON')
             args.append('-DMPIEXEC_NUMPROC_FLAG:STRING=-n')
             args.append('-DMPIEXEC_MAX_NUMPROCS:STRING=6')
-            args.append('-DCMAKE_C_COMPILER={0}'.format(self.spec['mpi'].mpicc))
-            args.append('-DCMAKE_CXX_COMPILER={0}'.format(self.spec['mpi'].mpicxx))
-            args.append(
-                '-DCMAKE_Fortran_COMPILER={0}'.format(self.spec['mpi'].mpifc))
+            args.append('-DCMAKE_C_COMPILER={0}'.format(c))
+            args.append('-DCMAKE_CXX_COMPILER={0}'.format(cxx))
+            args.append('-DCMAKE_Fortran_COMPILER={0}'.format(f))
         else:
             args.append('-DHDF5_ENABLE_PARALLEL=OFF')
 
@@ -195,13 +193,12 @@ class Hdf5HpcIo(CMakePackage):
             
             
 
-        args.append(self.define_from_variant('HDF5_ENABLE_THREADSAFE', 'threadsafe'))
-
+        args.append(self.define_from_variant('HDF5_ENABLE_THREADSAFE',
+                                             'threadsafe'))
         args.append(self.define_from_variant('HDF5_BUILD_HL_LIB', 'hl'))
-
         args.append(self.define_from_variant('HDF5_BUILD_CPP', 'cxx'))
-
-        args.append(self.define_from_variant('HDF5_BUILD_FORTRAN', 'fortran'))
+        args.append(self.define_from_variant('HDF5_BUILD_FORTRAN',
+                                             'fortran'))
         args.append(self.define_from_variant('HDF5_BUILD_TOOLS', 'tools'))
         
         args.append('-DENABLE_BITGROOM:BOOL=OFF')
@@ -228,54 +225,7 @@ class Hdf5HpcIo(CMakePackage):
     @run_after('install')
     @on_package_attributes(run_tests=True)
     def test(self):
-        # https://spack.readthedocs.io/en/latest/build_systems/custompackage.html
-        make('test')
-    def check_install(self):
-        # Build and run a small program to test the installed HDF5 library
-        spec = self.spec
-        print("Checking HDF5 installation...")
-        checkdir = "spack-check"
-        with working_dir(checkdir, create=True):
-            source = r"""
-#include <hdf5.h>
-#include <assert.h>
-#include <stdio.h>
-int main(int argc, char **argv) {
-  unsigned majnum, minnum, relnum;
-  herr_t herr = H5get_libversion(&majnum, &minnum, &relnum);
-  assert(!herr);
-  printf("HDF5 version %d.%d.%d %u.%u.%u\n", H5_VERS_MAJOR, H5_VERS_MINOR,
-         H5_VERS_RELEASE, majnum, minnum, relnum);
-  return 0;
-}
-"""
-            expected = """\
-HDF5 version {version} {version}
-""".format(version=str(spec.version.up_to(3)))
-            with open("check.c", 'w') as f:
-                f.write(source)
-            if '+mpi' in spec:
-                cc = Executable(spec['mpi'].mpicc)
-            else:
-                cc = Executable(self.compiler.cc)
-            cc(*(['-c', "check.c"] + spec['hdf5'].headers.cpp_flags.split()))
-            cc(*(['-o', "check",
-                  "check.o"] + spec['hdf5'].libs.ld_flags.split()))
-            try:
-                check = Executable('./check')
-                output = check(output=str)
-            except ProcessError:
-                output = ""
-            success = output == expected
-            if not success:
-                print("Produced output does not match expected output.")
-                print("Expected output:")
-                print('-' * 80)
-                print(expected)
-                print('-' * 80)
-                print("Produced output:")
-                print('-' * 80)
-                print(output)
-                print('-' * 80)
-                raise RuntimeError("HDF5 install check failed")
-        shutil.rmtree(checkdir)
+        make('test') # See [1]
+
+# References
+# [1] https://spack.readthedocs.io/en/latest/build_systems/custompackage.html

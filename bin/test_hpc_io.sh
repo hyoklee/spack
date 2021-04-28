@@ -8,11 +8,9 @@ rm -rf /tmp/hyoklee
 source ../share/spack/setup-env.csh
 spack load hdf5-hpc-io
 
-# Set filter plugin environment variable.
+# Show installed library.
 set p="`./spack find --paths hdf5-hpc-io | tail  -1 | cut -d' ' -f 3-`"
-setenv HDF5_PLUGIN_PATH $p/lib/plugin/
+ls $p/lib/
 
-# Show installed plugin.
-ls $p/lib/plugin/
 
 
