@@ -15,5 +15,7 @@ class Hdf5VolTests(CMakePackage):
     maintainers = ['hyoklee']
 
     version('master', commit='9a147d3')
-
+    version('hyoklee.master', commit='ba378d6',
+            git='https://github.com/hyoklee/vol-tests', preferred=True)
+    
     depends_on('hdf5-vol-async')
