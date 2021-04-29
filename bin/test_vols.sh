@@ -1,5 +1,5 @@
 #!/bin/tcsh
-set list = (async cache external-passthrough)
+set list = (async cache external-passthrough tests)
 foreach a ($list)
     echo "Testing $a"
     ./spack uninstall --all --force --yes-to-all hdf5-vol-$a
