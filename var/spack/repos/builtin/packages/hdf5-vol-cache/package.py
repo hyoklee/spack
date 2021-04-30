@@ -25,7 +25,7 @@ class Hdf5VolCache(CMakePackage):
     o_par = '+mpi+threadsafe'
     o = o_flt+o_vol+o_par
     # depends_on('hdf5-cmake@av'+o)
-    depends_on('hdf5-hpc-io')
+    depends_on('hdf5-vol-async')
     
     def cmake_args(self):
         """Populate cmake arguments for HDF5 DAOS."""
