@@ -13,6 +13,20 @@ foreach a ($list)
     # Set VOL plugin environment variable.
     set p="`./spack find --paths hdf5-vol-$a | tail  -1 | cut -d' ' -f 3-`"
     setenv HDF5_PLUGIN_PATH $p/lib/
+    switch ($a)
+    case 'async':
+        setenv HDF5_VOL_CONNECTOR "async under_vol=0;under_info={}"
+        breaksw
+    case 'cache':
+        setenv HDF5_VOL_CONNECTOR "cache_ext config=config1.dat;under_vol=0;under_info={};"
+        breaksw
+    case 'external-passthrough'
+        setenv HDF5_VOL_CONNECTOR "pass_through_ext under_vol=0;under_info={};"
+        breaksw
+    default:
+        echo "$a is not supported."
+        breaksw
+    endsw
 
     # Show installed plugin.
     ls $p/lib/
