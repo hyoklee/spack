@@ -1,7 +1,9 @@
 #!/bin/tcsh
-set list = (async cache external-passthrough tests)
+# set list = (async cache external-passthrough)
+set list = (async external-passthrough)
 foreach a ($list)
     echo "Testing $a"
+    ./spack uninstall --all --force --yes-to-all hdf5-vol-tests
     ./spack uninstall --all --force --yes-to-all hdf5-vol-$a
     rm -rf ~/.spack/cache
     rm -rf /tmp/hyoklee
@@ -33,7 +35,7 @@ foreach a ($list)
 
     # Show installed header.
     ls $p/include/
-
+    ./spack install hdf5-vol-tests+vol-$a
 end
 
 

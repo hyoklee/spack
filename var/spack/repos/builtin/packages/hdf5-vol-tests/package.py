@@ -7,7 +7,7 @@ from spack import *
 
 
 class Hdf5VolTests(CMakePackage):
-    """This package Htests DF5 Virtual Object Layer (VOL)."""
+    """This package tests HDF5 Virtual Object Layer (VOL)."""
 
     homepage = "https://www.hdfgroup.org"
     git      = "https://github.com/HDFGroup/vol-tests"
@@ -17,5 +17,27 @@ class Hdf5VolTests(CMakePackage):
     version('master', commit='9a147d3')
     version('hyoklee.master', commit='27209af',
             git='https://github.com/hyoklee/vol-tests', preferred=True)
-    
-    depends_on('hdf5-vol-async')
+    variant('vol-async', default=True, description='Enable async VOL')
+    variant('vol-cache', default=False, description='Enable cache VOL')
+    variant('vol-external-passthrough', default=False, 
+            description='Enable external pass-through VOL')
+
+    variant('async', default=True, description='Enable parallel tests.')
+    variant('parallel', default=True, description='Enable async API tests.')
+    variant('part', default=True, 
+            description='Enable building the main test executable.')
+
+    depends_on('hdf5-vol-async', when='+vol-async')
+    depends_on('hdf5-vol-cache', when='+vol-cache')
+    depends_on('hdf5-vol-external-passthrough', 
+               when='+vol-external-passthrough')
+
+    def cmake_args(self):
+        args = []
+        if '+parallel' in self.spec:
+            args.append('-DHDF5_VOL_TEST_ENABLE_PARALLEL:BOOL=ON')
+        if '+async' in self.spec:
+            args.append('-DHDF5_VOL_TEST_ENABLE_ASYNC:BOOL=ON')
+        if '+part' in self.spec:
+            args.append('-DHDF5_VOL_TEST_ENABLE_PART:BOOL=ON')
+        return args
