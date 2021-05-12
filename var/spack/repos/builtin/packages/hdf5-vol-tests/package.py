@@ -15,7 +15,7 @@ class Hdf5VolTests(CMakePackage):
     maintainers = ['hyoklee']
 
     version('master', commit='9a147d3')
-    version('hyoklee.master', commit='27209af',
+    version('hyoklee.master', 
             git='https://github.com/hyoklee/vol-tests', preferred=True)
     variant('vol-async', default=True, description='Enable async VOL')
     variant('vol-cache', default=False, description='Enable cache VOL')
@@ -26,7 +26,7 @@ class Hdf5VolTests(CMakePackage):
     variant('parallel', default=True, description='Enable async API tests.')
     variant('part', default=True, 
             description='Enable building the main test executable.')
-
+    depends_on('szip')
     depends_on('hdf5-vol-async', when='+vol-async')
     depends_on('hdf5-vol-cache', when='+vol-cache')
     depends_on('hdf5-vol-external-passthrough', 
