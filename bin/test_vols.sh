@@ -35,7 +35,7 @@ foreach a ($list)
 
     # Show installed header.
     ls $p/include/
-    ./spack install hdf5-vol-tests+vol-$a
+    ./spack install --test all hdf5-vol-tests+vol-$a 
 end
 
 
