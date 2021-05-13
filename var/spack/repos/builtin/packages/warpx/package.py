@@ -17,11 +17,14 @@ class Warpx(CMakePackage):
     """
 
     homepage = "https://ecp-warpx.github.io"
+    url      = "https://github.com/ECP-WarpX/WarpX/archive/refs/tags/21.04.tar.gz"
     git      = "https://github.com/ECP-WarpX/WarpX.git"
 
     maintainers = ['ax3l', 'dpgrote', 'MaxThevenet', 'RemiLehe']
 
     version('develop', branch='development')
+    version('21.05', sha256='f835f0ae6c5702550d23191aa0bb0722f981abb1460410e3d8952bc3d945a9fc')
+    version('21.04', sha256='51d2d8b4542eada96216e8b128c0545c4b7527addc2038efebe586c32c4020a0')
 
     variant('app', default=True,
             description='Build the WarpX executable application')
@@ -64,7 +67,10 @@ class Warpx(CMakePackage):
             description='Enable tiny profiling features')
 
     depends_on('ascent', when='+ascent')
-    depends_on('ascent +cuda', when='+ascent compute=cuda')
+    # note: ~shared is only needed until the new concretizer is in and
+    #       honors the conflict inside the Ascent package to find this
+    #       automatically
+    depends_on('ascent +cuda ~shared', when='+ascent compute=cuda')
     depends_on('ascent +mpi', when='+ascent +mpi')
     depends_on('blaspp', when='+psatd dims=rz')
     depends_on('blaspp +cuda', when='+psatd dims=rz compute=cuda')
@@ -79,6 +85,8 @@ class Warpx(CMakePackage):
     depends_on('openpmd-api +mpi', when='+openpmd +mpi')
     depends_on('pkgconfig', type='build', when='+psatd compute=omp')
     depends_on('rocfft', when='+psatd compute=hip')
+    depends_on('rocprim', when='+psatd compute=hip')
+    depends_on('rocrand', when='+psatd compute=hip')
     depends_on('llvm-openmp', when='%apple-clang compute=omp')
 
     conflicts('~qed +qedtablegen',
