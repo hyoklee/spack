@@ -29,6 +29,10 @@ class Hdf5Cmake(CMakePackage):
     version('hyoklee.OESS-126', branch='OESS-126', 
             git = "https://github.com/hyoklee/hdf5.git")
 
+    # A forked version for GPUDirect Storage VFD
+    version('jhendersonHDF.H5FD_dynamic', branch='H5FD_dynamic', 
+            git = "https://github.com/jhendersonHDF/hdf5.git")
+
     # Official HDF5 GitHub repository branches
     version('develop', branch='develop', preferred=True)
     version('develop-1.12', branch='hdf5_1_12')
@@ -82,8 +86,11 @@ class Hdf5Cmake(CMakePackage):
     variant('pic', default=True,
             description='Produce position-independent code (for shared libs)')
     # Build HDF5 with API compatibility.
-    variant('api', default='none', description='Choose api compatibility', values=('none', 'v114', 'v112', 'v110', 'v18', 'v16'), multi=False)
-
+    variant('api', default='none', description='Choose api compatibility',
+            values=('none', 'v114', 'v112', 'v110', 'v18', 'v16'), multi=False)
+    
+    variant('vfd-gds', default=False, description='Enable GPUDirect Storage VFD')
+    
     # Build filter plugins.
     variant('blosc', default=True, description='Enable blosc support')
     variant('bshuf', default=True, description='Enable bshuf support')
@@ -99,6 +106,7 @@ class Hdf5Cmake(CMakePackage):
     variant('pv', default=False, description='Enable pass-through ext. VOL')
     variant('av', default=False, description='Enable async VOL')
     variant('cv', default=False, description='Enable cache VOL')
+
 
     conflicts('api=v114', when='@1.6:1.12.99', msg='v114 is not compatible with this release')
     conflicts('api=v114', when='@:develop-1.12.99', msg='v114 is not compatible with this release')
@@ -333,7 +341,8 @@ class Hdf5Cmake(CMakePackage):
 
 
         # Build plugin filters.
-        self.cmake_use_cacheinit(args)
+        if '+vfd-gds' not in self.spec:
+            self.cmake_use_cacheinit(args)
         if '~blosc' in self.spec:
             args.append('-DENABLE_BLOSC:BOOL=OFF')
 
