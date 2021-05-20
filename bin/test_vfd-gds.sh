@@ -3,7 +3,7 @@
 rm -rf ~/.spack/cache
 rm -rf /tmp/hyoklee
 
-./spack install hdf5-cmake@jhendersonHDF.H5FD_dynamic~zfp~mafisc~zstd~blosc~bshuf~bitgroom~av~pv~cv~mpi~threadsafe+vfd-gds
+./spack install --test all hdf5-cmake@jhendersonHDF.H5FD_dynamic~zfp~mafisc~zstd~blosc~bshuf~bitgroom~av~pv~cv~mpi~threadsafe+vfd-gds
 
 source ../share/spack/setup-env.csh
 spack load hdf5-cmake@jhendersonHDF.H5FD_dynamic
