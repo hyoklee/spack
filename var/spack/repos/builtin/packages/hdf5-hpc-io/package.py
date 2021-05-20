@@ -12,6 +12,9 @@ from spack import *
 
 
 class Hdf5HpcIo(CMakePackage):
+    """ This HDF5 package is to test vol-async using a hpc-io's HDF5 branch.
+    """
+    
     git = "https://github.com/hpc-io/hdf5.git"
     version('async_vol_register_optional',
             branch='async_vol_register_optional', 
