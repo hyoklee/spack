@@ -1,4 +1,4 @@
-name: spack ubuntu
+name: test vols
 
 on:
   push:
