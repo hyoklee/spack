@@ -14,10 +14,10 @@ class Hdf5VolExternalPassthrough(CMakePackage):
 
     maintainers = ['hyoklee']
 
-    version('default', branch='async_vol_register_optional')
-    version('cmake', branch='async_vol_register_optional',
-            git='https://github.com/hyoklee/vol-external-passthrough.git', 
+    version('default', branch='async_vol_register_optional',
             preferred=True)
+    version('cmake', branch='async_vol_register_optional',
+            git='https://github.com/hyoklee/vol-external-passthrough.git')
     
     # Set hdf5-cmake package option.
     o_flt = '~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom'

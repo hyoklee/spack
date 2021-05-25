@@ -1,0 +1,23 @@
+name: spack ubuntu
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout spack
+      uses: actions/checkout@v2
+
+    - name: Run a multi-line script
+      run: |
+        sudo apt-get install tcsh
+        cd bin
+        ./test_vols.sh
+
+        
