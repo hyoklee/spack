@@ -14,7 +14,9 @@ class PyH5py(PythonPackage):
     pypi     = "h5py/h5py-3.2.1.tar.gz"
     git      = "https://github.com/h5py/h5py.git"
     maintainers = ['bryanherman']
-
+    version('hyoklee', branch='master',
+            git='file:///Users/hyoklee/src/h5py',
+            default=True)
     version('master', branch='master')
     version('3.2.1', sha256='89474be911bfcdb34cbf0d98b8ec48b578c27a89fdb1ae4ee7513f1ef8d9249e')
     version('3.2.0', sha256='4271c1a4b7d87aa76fe96d016368beb05a6c389d64882d58036964ce7d2d03c1')
@@ -29,7 +31,9 @@ class PyH5py(PythonPackage):
     version('2.5.0', sha256='9833df8a679e108b561670b245bcf9f3a827b10ccb3a5fa1341523852cfac2f6')
     version('2.4.0', sha256='faaeadf4b8ca14c054b7568842e0d12690de7d5d68af4ecce5d7b8fc104d8e60')
 
-    variant('mpi', default=True, description='Build with MPI support')
+    # variant('mpi', default=True, description='Build with MPI support')
+    variant('mpi', default=False, description='Build with MPI support')
+    variant('async', default=True, description='Build with async VOL support')
 
     # Python versions
     depends_on('python@3.6:', type=('build', 'run'), when='@3.0.0:3.1.99')
@@ -59,6 +63,7 @@ class PyH5py(PythonPackage):
 
     # MPI dependencies
     depends_on('hdf5+mpi', when='+mpi')
+    depends_on('hdf5-vol-async', when='+async')
     depends_on('mpi', when='+mpi')
     depends_on('py-mpi4py', when='@:2.99 +mpi', type=('build', 'run'))
     depends_on('py-mpi4py@3.0.0:', when='@3.0.0:+mpi^python@3.0.0:3.7.99', type=('build', 'run'))
@@ -71,7 +76,8 @@ class PyH5py(PythonPackage):
     phases = ['configure', 'install']
 
     def setup_build_environment(self, env):
-        env.set('HDF5_DIR', self.spec['hdf5'].prefix)
+        # env.set('HDF5_DIR', self.spec['hdf5'].prefix)
+        env.set('HDF5_DIR', self.spec['hdf5-hpc-io'].prefix)
         if '+mpi' in self.spec:
             env.set('CC', self.spec['mpi'].mpicc)
             env.set('HDF5_MPI', 'ON')
@@ -82,7 +88,10 @@ class PyH5py(PythonPackage):
 
     @when('@:2.99')
     def configure(self, spec, prefix):
-        self.setup_py('configure', '--hdf5={0}'.format(spec['hdf5'].prefix),
-                      '--hdf5-version={0}'.format(spec['hdf5'].version))
+        self.setup_py('configure',
+                      '--hdf5={0}'.format(spec['hdf5-hpc-io'].prefix),
+                      '--hdf5-version={0}'.format(spec['hdf5-hpc-io'].version))
+        # self.setup_py('configure', '--hdf5={0}'.format(spec['hdf5'].prefix),
+        #              '--hdf5-version={0}'.format(spec['hdf5'].version))
         if '+mpi' in spec:
             self.setup_py('configure', '--mpi')
