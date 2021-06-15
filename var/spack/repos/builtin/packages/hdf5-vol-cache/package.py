@@ -13,10 +13,10 @@ class Hdf5VolCache(CMakePackage):
 
     maintainers = ['hyoklee']
 
-    version('default', branch='master', preferred=True)
-    version('cmake', branch='master',
+    version('default', branch='develop', preferred=True)
+    version('cmake', branch='develop',
             git='https://github.com/hyoklee/vol-cache.git')
-    version('cmake-local', branch='master',
+    version('cmake-local', branch='develop',
             git='file:///home/hyoklee/vol-cache')
     
     # Set hdf5-cmake package option.
