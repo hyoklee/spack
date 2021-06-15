@@ -9,8 +9,11 @@ rm -rf /tmp/hyoklee
 # This is for all VOLs using develop branch.
 # ./spack install hdf5-cmake+pv+cv+av+mpi+threadsafe
 
+# This is for hpc-io/develop branch.
+./spack install hdf5-cmake@hpc-io.develop~zfp~mafisc~szip~zstd~blosc~bshuf~bitgroom~av~pv~cv+mpi+threadsafe
+
 # This is for hyoklee/OESS-126 branch.
-./spack install hdf5-cmake@hyoklee.OESS-126~zfp~mafisc~szip~zstd~blosc~bshuf~bitgroom~av~pv~cv+mpi+threadsafe
+#./spack install hdf5-cmake@hyoklee.OESS-126~zfp~mafisc~szip~zstd~blosc~bshuf~bitgroom~av~pv~cv+mpi+threadsafe
 
 # This is for Cache VOL using OESS-126 branch.
 #./spack install hdf5-cmake~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom+cv+mpi

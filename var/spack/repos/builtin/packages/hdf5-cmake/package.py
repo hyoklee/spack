@@ -23,8 +23,8 @@ class Hdf5Cmake(CMakePackage):
     maintainers = ['lrknox', 'hyoklee']
 
     # Forked versions for VOLs
-    version('hpc-io.async_vol_register_optional', 
-            branch='async_vol_register_optional',
+    version('hpc-io.develop', 
+            branch='develop',
             git='https://github.com/hpc-io/hdf5.git')
     version('hyoklee.OESS-126', branch='OESS-126', 
             git = "https://github.com/hyoklee/hdf5.git")
