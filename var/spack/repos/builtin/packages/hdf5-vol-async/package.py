@@ -12,12 +12,12 @@ class Hdf5VolAsync(CMakePackage):
     git      = "https://github.com/hpc-io/vol-async"
     maintainers = ['hyoklee']
 
-    version('async_vol_register_optional', branch='async_vol_register_optional')
-    version('hyoklee.async_vol_register_optional',
-            branch='async_vol_register_optional',
+    version('develop', branch='develop')
+    version('hyoklee.develop',
+            branch='develop',
             git='https://github.com/hyoklee/vol-async',            
             preferred=True)
-    version('cmake-local', branch='async_vol_register_optional',
+    version('cmake-local', branch='develop',
             git='file:///Users/hyoklee/src/vol-async')
 
     depends_on('argobots@main')
