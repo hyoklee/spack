@@ -15,10 +15,10 @@ class Hdf5VolTests(CMakePackage):
     maintainers = ['hyoklee']
 
     version('master', commit='9a147d3')
-    version('hyoklee.master', 
-            git='https://github.com/hyoklee/vol-tests') #, preferred=True)
+    version('hyoklee.master',
+            git='https://github.com/hyoklee/vol-tests', preferred=True)
     version('hyoklee.local', 
-            git='file:///Users/hyoklee/src/vol-tests', preferred=True)
+            git='file:///Users/hyoklee/src/vol-tests')
     variant('vol-async', default=True, description='Enable async VOL')
     variant('vol-cache', default=False, description='Enable cache VOL')
     variant('vol-external-passthrough', default=False, 
