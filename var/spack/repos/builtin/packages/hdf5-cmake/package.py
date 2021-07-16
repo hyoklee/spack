@@ -27,11 +27,11 @@ class Hdf5Cmake(CMakePackage):
             branch='develop',
             git='https://github.com/hpc-io/hdf5.git')
     version('hyoklee.OESS-126', branch='OESS-126', 
-            git = "https://github.com/hyoklee/hdf5.git")
+            git='https://github.com/hyoklee/hdf5.git')
 
     # A forked version for GPUDirect Storage VFD
     version('jhendersonHDF.H5FD_dynamic', branch='H5FD_dynamic', 
-            git = "https://github.com/jhendersonHDF/hdf5.git")
+            git="https://github.com/jhendersonHDF/hdf5.git")
 
     # Official HDF5 GitHub repository branches
     version('develop', branch='develop', preferred=True)

@@ -6,7 +6,7 @@ foreach a ($list)
     ./spack uninstall --all --force --yes-to-all hdf5-vol-$a
     rm -rf ~/.spack/cache
     rm -rf /tmp/hyoklee
-    ./spack install hdf5-vol-$a
+    ./spack install --test all hdf5-vol-$a
 
     source ../share/spack/setup-env.csh
     spack load hdf5-vol-$a
