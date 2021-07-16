@@ -15,7 +15,6 @@ class Hdf5VolLog(AutotoolsPackage):
     git = 'https://github.com/DataLib-ECP/vol-log-based.git'
     maintainers = ['hyoklee']
 
-    # FIXME: Add proper versions and checksums here.
     version('master', branch='master', git=git, 
             commit='b13778efd9e0c79135a9d7352104985408078d45')
 
@@ -25,6 +24,9 @@ class Hdf5VolLog(AutotoolsPackage):
     depends_on('libtool',  type='build')
     depends_on('m4',       type='build')
 
+    # Test fails.
+    # build_targets = ['all', 'check']
+
     def configure_args(self):
         args = []
 
@@ -32,8 +34,3 @@ class Hdf5VolLog(AutotoolsPackage):
         args.append('--enable-zlib')
 
         return args
-
-    def install(self, spec, prefix):
-        # FIXME: Unknown build system
-        make()
-        make('install')
