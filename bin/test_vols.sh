@@ -1,6 +1,6 @@
 #!/bin/tcsh
-# set list = (async cache external-passthrough)
-set list = (external-passthrough)
+set list = (async cache external-passthrough log)
+# set list = (external-passthrough)
 foreach a ($list)
     echo "Testing $a"
     ./spack uninstall --all --force --yes-to-all hdf5-vol-tests
@@ -24,6 +24,9 @@ foreach a ($list)
         breaksw
     case 'external-passthrough'
         setenv HDF5_VOL_CONNECTOR "pass_through_ext under_vol=0;under_info={};"
+        breaksw
+    case 'log'
+        setenv HDF5_VOL_CONNECTOR "LOG under_vol=0;under_info={};"
         breaksw
     default:
         echo "$a is not supported."
