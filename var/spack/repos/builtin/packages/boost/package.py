@@ -3,9 +3,10 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-import sys
 import os
+import sys
+
+from spack import *
 
 
 class Boost(Package):
@@ -549,6 +550,10 @@ class Boost(Package):
         ]
 
         threading_opts = self.determine_b2_options(spec, b2_options)
+
+        # Create headers if building from a git checkout
+        if '@develop' in spec:
+            b2('headers', *b2_options)
 
         b2('--clean', *b2_options)
 
