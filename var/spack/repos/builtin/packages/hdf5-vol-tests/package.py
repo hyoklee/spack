@@ -19,20 +19,23 @@ class Hdf5VolTests(CMakePackage):
             git='https://github.com/hyoklee/vol-tests', preferred=True)
     version('hyoklee.local', 
             git='file:///Users/hyoklee/src/vol-tests')
-    variant('vol-async', default=True, description='Enable async VOL')
+    variant('vol-async', default=False, description='Enable async VOL')
     variant('vol-cache', default=False, description='Enable cache VOL')
     variant('vol-external-passthrough', default=False, 
             description='Enable external pass-through VOL')
+    variant('vol-log', default=False, 
+            description='Enable log-based VOL')
 
     variant('async', default=True, description='Enable parallel tests.')
     variant('parallel', default=True, description='Enable async API tests.')
     variant('part', default=True, 
             description='Enable building the main test executable.')
-    depends_on('szip')
+    # depends_on('szip')
     depends_on('hdf5-vol-async', when='+vol-async')
     depends_on('hdf5-vol-cache', when='+vol-cache')
     depends_on('hdf5-vol-external-passthrough', 
                when='+vol-external-passthrough')
+    depends_on('hdf5-vol-log', when='+vol-log')
 
     def cmake_args(self):
         args = []
