@@ -19,5 +19,8 @@ HDF5 API calls into HTTP-based REST calls, as defined by the HDF5 REST API."""
             git='https://github.com/HDFGroup/vol-rest.git', preferred=True,
             submodules=True)
 
+    depends_on('cmake')
+    depends_on('curl')
     depends_on('yajl')
+
     
