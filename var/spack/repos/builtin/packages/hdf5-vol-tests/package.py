@@ -38,7 +38,8 @@ class Hdf5VolTests(CMakePackage):
     depends_on('hdf5-vol-external-passthrough', 
                when='+vol-external-passthrough')
     depends_on('hdf5-vol-log', when='+vol-log')
-    depends_on('adios2+shared+hdf5 ^hdf5@1.12.1', when='+vol-adios2')    
+    depends_on('adios2+shared+hdf5 ^hdf5@1.12.1', when='+vol-adios2')
+    depends_on('hdf5-vol-rest', when='+vol-rest')    
 
     def cmake_args(self):
         args = []
