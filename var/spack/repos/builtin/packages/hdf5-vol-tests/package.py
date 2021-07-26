@@ -25,6 +25,8 @@ class Hdf5VolTests(CMakePackage):
             description='Enable external pass-through VOL')
     variant('vol-log', default=False, 
             description='Enable log-based VOL')
+    variant('vol-adios2', default=False, 
+            description='Enable ADIOS2 VOL')
 
     variant('async', default=True, description='Enable parallel tests.')
     variant('parallel', default=True, description='Enable async API tests.')
@@ -36,6 +38,7 @@ class Hdf5VolTests(CMakePackage):
     depends_on('hdf5-vol-external-passthrough', 
                when='+vol-external-passthrough')
     depends_on('hdf5-vol-log', when='+vol-log')
+    depends_on('adios2+shared+hdf5 ^hdf5@1.12.1', when='+vol-adios2')    
 
     def cmake_args(self):
         args = []

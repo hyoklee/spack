@@ -1,17 +1,24 @@
 #!/bin/tcsh
-# set list = (async cache external-passthrough log)
-set list = (log)
+# set list = (async cache external-passthrough log adios2)
+set list = (adios2)
 foreach a ($list)
     echo "Testing $a"
     ./spack uninstall --all --force --yes-to-all hdf5-vol-tests
     ./spack uninstall --all --force --yes-to-all hdf5-vol-$a
     rm -rf ~/.spack/cache
     rm -rf /tmp/hyoklee
-    ./spack install --test all hdf5-vol-$a
-
+    if ( $a == "adios2" ) then
+        ./spack install --test root adios2+shared+hdf5 ^hdf5@1.12.1
+    else
+        ./spack install --test all hdf5-vol-$a
+    endif
     source ../share/spack/setup-env.csh
-    spack load hdf5-vol-$a
-
+    if ( $a == "adios2" ) then
+        spack load adios2
+    else
+        spack load hdf5-vol-$a
+    endif
+    
     # Set VOL plugin environment variable.
     set p="`./spack find --paths hdf5-vol-$a | tail  -1 | cut -d' ' -f 3-`"
     setenv HDF5_PLUGIN_PATH $p/lib/
@@ -28,6 +35,9 @@ foreach a ($list)
     case 'log'
         setenv HDF5_VOL_CONNECTOR "LOG under_vol=0;under_info={};"
         breaksw
+    case 'adios2'
+        setenv HDF5_VOL_CONNECTOR "ADIOS2_VOL"
+        breaksw        
     default:
         echo "$a is not supported."
         breaksw
