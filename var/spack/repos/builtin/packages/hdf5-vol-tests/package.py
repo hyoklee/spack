@@ -27,6 +27,8 @@ class Hdf5VolTests(CMakePackage):
             description='Enable log-based VOL')
     variant('vol-adios2', default=False, 
             description='Enable ADIOS2 VOL')
+    variant('vol-rest', default=False, 
+            description='Enable REST VOL')
 
     variant('async', default=True, description='Enable parallel tests.')
     variant('parallel', default=True, description='Enable async API tests.')

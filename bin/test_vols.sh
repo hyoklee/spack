@@ -20,7 +20,11 @@ foreach a ($list)
     endif
     
     # Set VOL plugin environment variable.
-    set p="`./spack find --paths hdf5-vol-$a | tail  -1 | cut -d' ' -f 3-`"
+    if ( $a == "adios2" ) then
+        set p="`./spack find --paths $a | tail  -1 | cut -d' ' -f 3-`"
+    else
+        set p="`./spack find --paths hdf5-vol-$a | tail  -1 | cut -d' ' -f 3-`"
+    endif
     setenv HDF5_PLUGIN_PATH $p/lib/
     switch ($a)
     case 'async':
@@ -51,7 +55,7 @@ foreach a ($list)
 
     # Show installed header.
     ls $p/include/
-    ./spack install --test all hdf5-vol-tests+vol-$a 
+    ./spack install --test root hdf5-vol-tests+vol-$a 
 end
 
 
