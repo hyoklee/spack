@@ -14,9 +14,16 @@ HDF5 API calls into HTTP-based REST calls, as defined by the HDF5 REST API."""
     url      = "https://github.com/HDFGroup/vol-rest"
 
     maintainers = ['hyoklee']
-
-    version('develop', branch='hdf5_1_12_update', 
-            git='https://github.com/HDFGroup/vol-rest.git', preferred=True,
+    version('master',
+            git='https://github.com/HDFGroup/vol-rest.git',
+            submodules=True)
+    version('hdf5_1_12_update',
+            git='https://github.com/HDFGroup/vol-rest.git',
+            branch='hdf5_1_12_update',
+            submodules=True)
+    version('hyoklee.hdf5_1_12_update', preferred=True,
+            branch='hdf5_1_12_update',
+            git='https://github.com/hyoklee/vol-rest.git',
             submodules=True)
 
     depends_on('cmake')
