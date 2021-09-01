@@ -29,6 +29,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
 
     version('master', branch='master')
 
+    version('11.2.0', sha256='d08edc536b54c372a1010ff6619dd274c0f1603aa49212ba20f7aa2cda36fa8b')
     version('11.1.0', sha256='4c4a6fb8a8396059241c2e674b85b351c26a5d678274007f076957afa1cc9ddf')
 
     version('10.3.0', sha256='64f404c1a650f27fc33da242e1f2df54952e3963a49e06e73f6940f3223ac344')
@@ -128,10 +129,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage):
         depends_on('isl@0.15:', when='@10:')
 
     depends_on('zlib', when='@6:')
-    # GCC only tries to link with -lzstd but it requires
-    # -pthread too when linking against libzstd.a, so
-    # disable multithreading by default
-    depends_on('zstd~multithread', when='@10:')
+    depends_on('zstd', when='@10:')
     depends_on('diffutils', type='build')
     depends_on('iconv', when='platform=darwin')
     depends_on('gnat', when='languages=ada')
