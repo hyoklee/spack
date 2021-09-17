@@ -15,7 +15,8 @@ class Hdf5HpcIo(CMakePackage):
     """ This HDF5 package is to test vol-async using a hpc-io's HDF5 branch.
     """
     
-    git = "https://github.com/hpc-io/hdf5.git"
+    # git = "https://github.com/hpc-io/hdf5.git"
+    git = "https://github.com/HDFGroup/hdf5.git"
     version('develop',
             branch='develop', 
             preferred=True)
@@ -31,12 +32,13 @@ class Hdf5HpcIo(CMakePackage):
             description='Enable thread-safe capabilities')
     variant('tools', default=True, description='Enable build tools')
     variant('mpi', default=True, description='Enable MPI support')
-    # variant('szip', default=True, description='Enable szip support')    
+    variant('szip', default=True, description='Enable szip support')    
     # variant('zlib', default=True, description='Enable zlib support')    
     variant('pic', default=True,
             description='Produce position-independent code (for shared libs)')
     depends_on('cmake@3.12.4:', type='build')
     depends_on('mpi', when='+mpi')
+    depends_on('szip', when='+szip')
     # numactl does not currently build on darwin
     if sys.platform != 'darwin':
         depends_on('numactl', when='+mpi+fortran')

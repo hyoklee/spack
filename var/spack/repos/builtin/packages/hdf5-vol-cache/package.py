@@ -18,6 +18,9 @@ class Hdf5VolCache(CMakePackage):
             git='https://github.com/hyoklee/vol-cache.git')
     version('cmake-local', branch='develop',
             git='file:///home/hyoklee/vol-cache')
+    version('jelly', branch='develop',
+            git='file:///scr/hyoklee/src/vol-cache/')
+
     
     # Set hdf5-cmake package option.
     o_flt = '~zfp~mafisc~szip~zstd~blosc~bshuf~bitgroom'
