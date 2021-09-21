@@ -15,10 +15,10 @@ class Hdf5HpcIo(CMakePackage):
     """ This HDF5 package is to test vol-async using a hpc-io's HDF5 branch.
     """
     
-    # git = "https://github.com/hpc-io/hdf5.git"
-    git = "https://github.com/HDFGroup/hdf5.git"
+    git = "https://github.com/hpc-io/hdf5.git"
+    # git = "https://github.com/HDFGroup/hdf5.git"
     version('develop',
-            branch='develop', 
+            branch='post_open_fix',  # develop
             preferred=True)
     maintainers = ['hyoklee']
     variant('hl', default=False, description='Enable the high-level library')

@@ -1,6 +1,6 @@
 #!/bin/tcsh
 # set list = (async cache external-passthrough log adios2 rest)
-set list = (async cache)
+set list = (cache)
 foreach a ($list)
     echo "Testing $a"
     ./spack uninstall --all --force --yes-to-all hdf5-vol-tests
