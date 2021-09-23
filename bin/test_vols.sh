@@ -1,6 +1,6 @@
 #!/bin/tcsh
 # set list = (async cache external-passthrough log adios2 rest)
-set list = (cache)
+set list = (async)
 foreach a ($list)
     echo "Testing $a"
     ./spack uninstall --all --force --yes-to-all hdf5-vol-tests
@@ -28,9 +28,15 @@ foreach a ($list)
     setenv HDF5_PLUGIN_PATH $p/lib/
     switch ($a)
     case 'async':
+        set b="`./spack find --paths argobots | tail  -1 | cut -d' ' -f 3-`"
+        echo $b
+        setenv LD_PRELOAD $b/lib/libabt.so
         setenv HDF5_VOL_CONNECTOR "async under_vol=0;under_info={}"
         breaksw
     case 'cache':
+        set b="`./spack find --paths argobots | tail  -1 | cut -d' ' -f 3-`"
+        echo $b
+        setenv LD_PRELOAD $b/lib/libabt.so
         setenv HDF5_VOL_CONNECTOR "cache_ext config=config1.dat;under_vol=0;under_info={};"
         breaksw
     case 'external-passthrough'
@@ -55,5 +61,6 @@ foreach a ($list)
 
     # Show installed header.
     ls $p/include/
+    env
     ./spack install --test root hdf5-vol-tests+vol-$a 
 end

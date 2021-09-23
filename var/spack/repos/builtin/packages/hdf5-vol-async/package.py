@@ -35,6 +35,8 @@ class Hdf5VolAsync(CMakePackage):
         args = [
             '-DBUILD_SHARED_LIBS:BOOL=ON',
             '-DBUILD_TESTING:BOOL=ON'
+            '-DCMAKE_C_COMPILER=mpicc',
+            '-DCMAKE_CXX_COMPILER=mpicxx',
         ]
 
         return args
