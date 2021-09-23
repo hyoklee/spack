@@ -15,15 +15,16 @@ class Hdf5VolAsync(CMakePackage):
     version('develop', branch='develop')
     version('hyoklee.develop',
             branch='develop',
-            git='https://github.com/hyoklee/vol-async',            
-            preferred=True)
-    version('cmake-local', branch='develop',
-            git='file:///Users/hyoklee/src/vol-async')
+            git='https://github.com/hyoklee/vol-async', preferred=True)
+    version('local.develop', branch='develop',
+            git='file:///scr/hyoklee/src/vol-async')
 
     depends_on('argobots@main')
     depends_on('hdf5-hpc-io')
+    # Use the following if you want to use HDFGroup/hdf5@develop-1.3 instead.
+    # depends_on('hdf5@develop-1.13+mpi+threadsafe')
 
-    # These are for testing with generic 'make' command.
+    # These are for testing with the generic 'make' command.
     # patch('Makefile.patch')
     # patch('src_Makefile.patch')
     # patch('test_Makefile.patch')
@@ -39,10 +40,9 @@ class Hdf5VolAsync(CMakePackage):
         return args
     
 
-    #def setup_run_environment(self, env):
-        # env.prepend_path('HDF5_PLUGIN_PATH', self.prefix.lib)
-        # env.prepend_path('HDF5_VOL_CONNECTOR',
-        #                 'async under_vol=0;under_info={}')        
-
-    def check(self):
-        make('test')
+    def setup_environment(self, spack_env, run_env):
+        spack_env.set('HDF5_PLUGIN_PATH', self.build_directory+'/lib')
+        spack_env.set('HDF5_VOL_CONNECTOR',
+                         'async under_vol=0\;under_info={}')        
+        spack_env.set('LD_PRELOAD', self.spec['argobots'].prefix+'/lib/libabt.so')
+        

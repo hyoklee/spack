@@ -57,11 +57,3 @@ foreach a ($list)
     ls $p/include/
     ./spack install --test root hdf5-vol-tests+vol-$a 
 end
-
-
-
-
-
-
-
-

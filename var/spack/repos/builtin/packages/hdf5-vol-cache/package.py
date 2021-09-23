@@ -14,20 +14,11 @@ class Hdf5VolCache(CMakePackage):
     maintainers = ['hyoklee']
 
     version('default', branch='develop')
-    version('cmake', branch='develop',
-            git='https://github.com/hyoklee/vol-cache.git')
-    version('cmake-local', branch='develop',
+    version('hyoklee.develop', branch='develop',
+            git='https://github.com/hyoklee/vol-cache.git', preferred=True)
+    version('local.develop', branch='develop',
             git='file:///home/hyoklee/vol-cache')
-    version('jelly', branch='develop',
-            git='file:///scr/hyoklee/src/vol-cache/', preferred=True)
 
-    
-    # Set hdf5-cmake package option.
-    o_flt = '~zfp~mafisc~szip~zstd~blosc~bshuf~bitgroom'
-    o_vol = '~av~pv~cv'
-    o_par = '+mpi+threadsafe'
-    o = o_flt+o_vol+o_par
-    # depends_on('hdf5-cmake@av'+o)
     depends_on('hdf5-vol-async')
     
     def cmake_args(self):
