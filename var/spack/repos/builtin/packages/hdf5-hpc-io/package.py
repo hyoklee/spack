@@ -16,10 +16,13 @@ class Hdf5HpcIo(CMakePackage):
     """
     
     git = "https://github.com/hpc-io/hdf5.git"
-    # git = "https://github.com/HDFGroup/hdf5.git"
+    
     version('develop',
-            branch='post_open_fix',  # develop
+            branch= 'develop', # 'post_open_fix'
             preferred=True)
+    version('HDFGroup.develop',
+            git = "https://github.com/HDFGroup/hdf5.git",
+            branch= 'develop')
     maintainers = ['hyoklee']
     variant('hl', default=False, description='Enable the high-level library')
     variant('cxx', default=False, description='Enable C++ support')
