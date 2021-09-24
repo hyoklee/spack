@@ -1,6 +1,6 @@
 #!/bin/tcsh
 # set list = (async cache external-passthrough log adios2 rest)
-set list = (async)
+set list = (cache)
 foreach a ($list)
     echo "Testing $a"
     ./spack uninstall --all --force --yes-to-all hdf5-vol-tests
@@ -61,6 +61,5 @@ foreach a ($list)
 
     # Show installed header.
     ls $p/include/
-    env
     ./spack install --test root hdf5-vol-tests+vol-$a 
 end

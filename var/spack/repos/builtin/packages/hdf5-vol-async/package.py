@@ -20,9 +20,9 @@ class Hdf5VolAsync(CMakePackage):
             git='file:///scr/hyoklee/src/vol-async')
 
     depends_on('argobots@main')
-    depends_on('hdf5-hpc-io')
+    # depends_on('hdf5-hpc-io')
     # Use the following if you want to use HDFGroup/hdf5@develop-1.3 instead.
-    # depends_on('hdf5@develop-1.13+mpi+threadsafe')
+    depends_on('hdf5@develop-1.13+mpi+threadsafe')
 
     # These are for testing with the generic 'make' command.
     # patch('Makefile.patch')
