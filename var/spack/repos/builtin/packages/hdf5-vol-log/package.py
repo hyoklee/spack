@@ -24,9 +24,6 @@ class Hdf5VolLog(AutotoolsPackage):
     depends_on('libtool',  type='build')
     depends_on('m4',       type='build')
 
-    # Test fails.
-    # build_targets = ['all', 'check']
-
     def configure_args(self):
         args = []
 
