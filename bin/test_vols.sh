@@ -1,6 +1,6 @@
 #!/bin/tcsh
 # set list = (async cache external-passthrough log adios2 rest)
-set list = (cache)
+set list = (adios2)
 foreach a ($list)
     echo "Testing $a"
     ./spack uninstall --all --force --yes-to-all hdf5-vol-tests
@@ -8,7 +8,7 @@ foreach a ($list)
     rm -rf ~/.spack/cache
     rm -rf /tmp/hyoklee
     if ( $a == "adios2" ) then
-        ./spack install --test root adios2+shared+hdf5 ^hdf5@1.12.1
+        ./spack install --test root adios2@master+shared+hdf5 ^hdf5@develop-1.13
     else
         ./spack install hdf5-vol-$a
     endif
