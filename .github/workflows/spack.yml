@@ -17,8 +17,9 @@ jobs:
     - name: Run a multi-line script
       run: |
         . ./share/spack/setup-env.sh
-        export HDF5_VOL_CONNECTOR="ADIOS2_VOL"
+        # export HDF5_VOL_CONNECTOR="ADIOS2_VOL"
         # spack install hdf5-examples
         # spack install hdf5-vol-async
         # spack install --test root hdf5-cmake@jhendersonHDF.H5FD_dynamic+vfd-gds
-        spack install --test root adios2@master+shared+hdf5 ^hdf5@develop-1.13
+        # spack install --test root adios2@master+shared+hdf5 ^hdf5@develop-1.13
+        spack install --test root hdf5-vfd-gds
