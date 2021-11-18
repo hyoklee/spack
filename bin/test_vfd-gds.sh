@@ -1,13 +1,13 @@
 #!/bin/tcsh
-./spack uninstall --all --force --yes-to-all hdf5-cmake@jhendersonHDF.H5FD_dynamic
+./spack uninstall --all --force --yes-to-all hdf5-vfd-gds
 rm -rf ~/.spack/cache
 rm -rf /tmp/hyoklee
 
-./spack install --test all hdf5-cmake@jhendersonHDF.H5FD_dynamic~zfp~mafisc~zstd~blosc~bshuf~bitgroom~av~pv~cv~mpi~threadsafe+vfd-gds
+./spack install --test root hdf5-vfd-gds
 
 source ../share/spack/setup-env.csh
-spack load hdf5-cmake@jhendersonHDF.H5FD_dynamic
+spack load hdf5-vfd-gds
 
 # Show installed library.
-set p="`./spack find --paths hdf5-cmake@jhendersonHDF.H5FD_dynamic | tail  -1 | cut -d' ' -f 3-`"
+set p="`./spack find --paths hdf5-vfd-gds | tail  -1 | cut -d' ' -f 3-`"
 ls $p/lib/

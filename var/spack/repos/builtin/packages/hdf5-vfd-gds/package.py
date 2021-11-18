@@ -16,11 +16,12 @@ class Hdf5VfdGds(CMakePackage, CudaPackage):
     maintainers = ['hyoklee']
 
     # Versions
-    version('1.0.0', branch='master', default=True)
-
+    version('1.0.0', branch='master')
+    version('hyoklee', branch='master', git='https://github.com/hyoklee/vfd-gds.git', default=True)
+    
     # Dependencies
     depends_on('cmake@3.4.0:')
-    depends_on('hdf5@develop')    
+    depends_on('hdf5@develop-1.13')    
     depends_on('cuda')
 
     def cmake_args(self):
@@ -29,7 +30,6 @@ class Hdf5VfdGds(CMakePackage, CudaPackage):
         # CMake options
         args = [
             self.define('BUILD_TESTING', self.run_tests),
-            self.define()
         ]
 
         return args
