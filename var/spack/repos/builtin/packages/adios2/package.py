@@ -14,8 +14,8 @@ class Adios2(CMakePackage):
 
     homepage = "https://csmd.ornl.gov/software/adios2"
     url = "https://github.com/ornladios/ADIOS2/archive/v2.6.0.tar.gz"
-    # git = "https://github.com/ornladios/ADIOS2.git"
-    git = "https://github.com/brtnfld/ADIOS2.git"
+    git = "https://github.com/ornladios/ADIOS2.git"
+
     maintainers = ['ax3l', 'chuckatkins', 'williamfgc']
 
     tags = ['e4s']
@@ -128,6 +128,11 @@ class Adios2(CMakePackage):
     # Fix unresolved symbols when built with gcc10.
     # See https://github.com/ornladios/ADIOS2/pull/2714
     patch('2.6-fix-gcc10-symbols.patch', when='@2.6.0')
+
+    # Add missing include <memory>
+    # https://github.com/ornladios/adios2/pull/2710
+    patch('https://github.com/ornladios/adios2/pull/2710.patch', when='@:2.7.1',
+          sha256='8d301e8232baf4049b547f22bd73774309662017a62dac36360d2965907062bf')
 
     @when('%fj')
     def patch(self):
