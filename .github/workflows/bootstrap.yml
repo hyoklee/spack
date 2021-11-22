@@ -103,7 +103,6 @@ jobs:
           spack external find cmake bison
           spack -d solve zlib
           tree ~/.spack/bootstrap/store/
->>>>>>> e90d5ad6cfff2ba3de7b537d6511adccd9d5fcf1
 
   macos-clingo-sources:
     runs-on: macos-latest
