@@ -20,6 +20,7 @@ class Hdf5VfdGds(CMakePackage, CudaPackage):
     # version('1.0.0', sha256='6b16105c7c49f13fc05784ee69b78d45fb159270c78d760689f9cd21e230ddd2', default=True)
     
     # Dependencies
+    depends_on('libpthread-stubs')
     depends_on('cuda')    
     depends_on('cmake@3.12:')
     depends_on('hdf5@develop-1.13')    
