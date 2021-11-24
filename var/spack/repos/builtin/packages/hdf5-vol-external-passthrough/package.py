@@ -10,31 +10,17 @@ class Hdf5VolExternalPassthrough(CMakePackage):
     """Package for HDF5 external pass-through VOL."""
 
     homepage = "https://sdm.lbl.gov/"
+    url      = "https://github.com/hpc-io/vol-external-passthrough/archive/refs/tags/v1.0.tar.gz"
     git      = "https://github.com/hpc-io/vol-external-passthrough.git"
-
     maintainers = ['hyoklee']
 
-    version('default', branch='develop') #,
-            # preferred=True)
-    version('cmake', branch='develop',
-            git='https://github.com/hyoklee/vol-external-passthrough.git',
-            preferred=True)
-    
-    # Set hdf5-cmake package option.
-    o_flt = '~zfp~mafisc+szip~zstd~blosc~bshuf~bitgroom'
-    o_vol = '~av~pv~cv'
-    o_par = '+mpi+threadsafe'
-    o = o_flt+o_vol+o_par
+    version('develop', branch='develop')
+    version('1.0', sha256='99a06d1c31451f8f0c8c10fec112410cda1f951f0eda1bd0ca999d6b35cf7740')
+    depends_on('hdf5@1.13.0:')
 
-    # depends_on('hdf5-cmake'+o)
-    depends_on('hdf5-hpc-io')
-    
     def cmake_args(self):
-        """Populate cmake arguments for HDF5 DAOS."""
-        spec = self.spec
-
         args = [
-            '-DBUILD_SHARED_LIBS:BOOL=ON',
-            '-DBUILD_TESTING:BOOL=ON'
+            self.define('BUILD_SHARED_LIBS:BOOL', True),
+            self.define('BUILD_TESTING:BOOL=ON', self.run_tests)
         ]
         return args
