@@ -1,0 +1,5 @@
+packages:
+  cuda:
+    externals:
+    - spec: cuda@11.5
+      prefix: /usr/local/cuda-11.5/

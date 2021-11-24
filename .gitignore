@@ -11,6 +11,7 @@
 # Ignore everything in /etc/spack except /etc/spack/defaults
 /etc/spack/*
 !/etc/spack/defaults
+!/etc/spack/packages.yaml
 /share/spack/modules
 /share/spack/lmod
 # Debug logs
