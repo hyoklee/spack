@@ -21,7 +21,7 @@ class Hdf5VfdGds(CMakePackage, CudaPackage):
     
     # Dependencies
     depends_on('libpthread-stubs')
-    # depends_on('cuda')    
+    depends_on('cuda')    
     depends_on('cmake@3.12:')
     depends_on('hdf5@develop-1.13')    
 
@@ -32,7 +32,7 @@ class Hdf5VfdGds(CMakePackage, CudaPackage):
         # CMake options
         args = [
             self.define('BUILD_TESTING', self.run_tests),
-            self.define('CUDA_TOOLKIT_ROOT_DIR', '/usr/local/cuda-11.5/'),            
+            # self.define('CUDA_TOOLKIT_ROOT_DIR', '/usr/local/cuda-11.5/'),            
         ]
 
         return args
