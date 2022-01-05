@@ -10,6 +10,7 @@ import functools
 import json
 import os
 import os.path
+import platform
 import re
 import sys
 import sysconfig
@@ -25,7 +26,6 @@ import spack.binary_distribution
 import spack.config
 import spack.detection
 import spack.environment
-import spack.main
 import spack.modules
 import spack.paths
 import spack.platforms
@@ -35,9 +35,6 @@ import spack.store
 import spack.user_environment
 import spack.util.executable
 import spack.util.path
-
-#: "spack buildcache" command, initialized lazily
-_buildcache_cmd = None
 
 #: Map a bootstrapper type to the corresponding class
 _bootstrap_methods = {}
@@ -258,11 +255,6 @@ class _BuildcacheBootstrapper(object):
         return data
 
     def _install_by_hash(self, pkg_hash, pkg_sha256, index, bincache_platform):
-        global _buildcache_cmd
-
-        if _buildcache_cmd is None:
-            _buildcache_cmd = spack.main.SpackCommand('buildcache')
-
         index_spec = next(x for x in index if x.dag_hash() == pkg_hash)
         # Reconstruct the compiler that we need to use for bootstrapping
         compiler_entry = {
@@ -282,13 +274,18 @@ class _BuildcacheBootstrapper(object):
                     'compilers', [{'compiler': compiler_entry}]
             ):
                 spec_str = '/' + pkg_hash
-                install_args = [
-                    'install',
-                    '--sha256', pkg_sha256,
-                    '--only-root',
-                    '-a', '-u', '-o', '-f', spec_str
-                ]
-                _buildcache_cmd(*install_args, fail_on_error=False)
+                query = spack.binary_distribution.BinaryCacheQuery(
+                    all_architectures=True
+                )
+                matches = spack.store.find([spec_str], multiple=False, query_fn=query)
+                for match in matches:
+                    spack.binary_distribution.install_root_node(
+                        match,
+                        allow_root=True,
+                        unsigned=True,
+                        force=True,
+                        sha256=pkg_sha256
+                    )
 
     def _install_and_test(
             self, abstract_spec, bincache_platform, bincache_data, test_fn
@@ -421,9 +418,12 @@ class _SourceBootstrapper(object):
             abstract_spec_str += ' os=fe'
 
         concrete_spec = spack.spec.Spec(abstract_spec_str)
-        concrete_spec.concretize()
+        if concrete_spec.name == 'patchelf':
+            concrete_spec._old_concretize(deprecation_warning=False)
+        else:
+            concrete_spec.concretize()
 
-        msg = "[BOOTSTRAP GnuPG] Try installing '{0}' from sources"
+        msg = "[BOOTSTRAP] Try installing '{0}' from sources"
         tty.debug(msg.format(abstract_spec_str))
         concrete_spec.package.do_install()
         if _executables_in_store(executables, concrete_spec, query_info=info):
@@ -644,8 +644,30 @@ def _add_externals_if_missing():
     spack.detection.update_configuration(detected_packages, scope='bootstrap')
 
 
+#: Reference counter for the bootstrapping configuration context manager
+_REF_COUNT = 0
+
+
 @contextlib.contextmanager
 def ensure_bootstrap_configuration():
+    # The context manager is reference counted to ensure we don't swap multiple
+    # times if there's nested use of it in the stack. One compelling use case
+    # is bootstrapping patchelf during the bootstrap of clingo.
+    global _REF_COUNT
+    already_swapped = bool(_REF_COUNT)
+    _REF_COUNT += 1
+    try:
+        if already_swapped:
+            yield
+        else:
+            with _ensure_bootstrap_configuration():
+                yield
+    finally:
+        _REF_COUNT -= 1
+
+
+@contextlib.contextmanager
+def _ensure_bootstrap_configuration():
     bootstrap_store_path = store_path()
     user_configuration = _read_and_sanitize_configuration()
     with spack.environment.no_active_environment():
@@ -753,9 +775,25 @@ def gnupg_root_spec():
 
 def ensure_gpg_in_path_or_raise():
     """Ensure gpg or gpg2 are in the PATH or raise."""
-    ensure_executables_in_path_or_raise(
+    return ensure_executables_in_path_or_raise(
         executables=['gpg2', 'gpg'], abstract_spec=gnupg_root_spec()
     )
+
+
+def patchelf_root_spec():
+    """Return the root spec used to bootstrap patchelf"""
+    # TODO: patchelf is restricted to v0.13 since earlier versions have
+    # TODO: bugs that we don't to deal with, while v0.14 requires a C++17
+    # TODO: which may not be available on all platforms.
+    return _root_spec('patchelf@0.13.1:0.13.99')
+
+
+def ensure_patchelf_in_path_or_raise():
+    """Ensure patchelf is in the PATH or raise."""
+    return ensure_executables_in_path_or_raise(
+        executables=['patchelf'], abstract_spec=patchelf_root_spec()
+    )
+
 
 ###
 # Development dependencies
@@ -800,3 +838,142 @@ def ensure_flake8_in_path_or_raise():
     """Ensure that flake8 is in the PATH or raise."""
     executable, root_spec = 'flake8', flake8_root_spec()
     return ensure_executables_in_path_or_raise([executable], abstract_spec=root_spec)
+
+
+def _missing(name, purpose, system_only=True):
+    """Message to be printed if an executable is not found"""
+    msg = '[{2}] MISSING "{0}": {1}'
+    if not system_only:
+        return msg.format(name, purpose, '@*y{{B}}')
+    return msg.format(name, purpose, '@*y{{-}}')
+
+
+def _required_system_executable(exes, msg):
+    """Search for an executable is the system path only."""
+    if isinstance(exes, six.string_types):
+        exes = (exes,)
+    if spack.util.executable.which_string(*exes):
+        return True, None
+    return False, msg
+
+
+def _required_python_module(module, query_spec, msg):
+    """Check if a Python module is available in the current interpreter or
+    if it can be loaded from the bootstrap store
+    """
+    if _python_import(module) or _try_import_from_store(module, query_spec):
+        return True, None
+    return False, msg
+
+
+def _required_executable(exes, query_spec, msg):
+    """Search for an executable in the system path or in the bootstrap store."""
+    if isinstance(exes, six.string_types):
+        exes = (exes,)
+    if (spack.util.executable.which_string(*exes) or
+            _executables_in_store(exes, query_spec)):
+        return True, None
+    return False, msg
+
+
+def _core_requirements():
+    _core_system_exes = {
+        'make': _missing('make', 'required to build software from sources'),
+        'patch': _missing('patch', 'required to patch source code before building'),
+        'bash': _missing('bash', 'required for Spack compiler wrapper'),
+        'tar': _missing('tar', 'required to manage code archives'),
+        'gzip': _missing('gzip', 'required to compress/decompress code archives'),
+        'unzip': _missing('unzip', 'required to compress/decompress code archives'),
+        'bzip2': _missing('bzip2', 'required to compress/decompress code archives'),
+        'git': _missing('git', 'required to fetch/manage git repositories')
+    }
+    if platform.system().lower() == 'linux':
+        _core_system_exes['xz'] = _missing(
+            'xz', 'required to compress/decompress code archives'
+        )
+
+    # Executables that are not bootstrapped yet
+    result = [_required_system_executable(exe, msg)
+              for exe, msg in _core_system_exes.items()]
+    # Python modules
+    result.append(_required_python_module(
+        'clingo', clingo_root_spec(),
+        _missing('clingo', 'required to concretize specs', False)
+    ))
+    return result
+
+
+def _buildcache_requirements():
+    _buildcache_exes = {
+        'file': _missing('file', 'required to analyze files for buildcaches'),
+        ('gpg2', 'gpg'): _missing('gpg2', 'required to sign/verify buildcaches', False)
+    }
+    if platform.system().lower() == 'darwin':
+        _buildcache_exes['otool'] = _missing('otool', 'required to relocate binaries')
+
+    # Executables that are not bootstrapped yet
+    result = [_required_system_executable(exe, msg)
+              for exe, msg in _buildcache_exes.items()]
+
+    if platform.system().lower() == 'linux':
+        result.append(_required_executable(
+            'patchelf', patchelf_root_spec(),
+            _missing('patchelf', 'required to relocate binaries', False)
+        ))
+
+    return result
+
+
+def _optional_requirements():
+    _optional_exes = {
+        'zstd': _missing('zstd', 'required to compress/decompress code archives'),
+        'svn': _missing('svn', 'required to manage subversion repositories'),
+        'hg': _missing('hg', 'required to manage mercurial repositories')
+    }
+    # Executables that are not bootstrapped yet
+    result = [_required_system_executable(exe, msg)
+              for exe, msg in _optional_exes.items()]
+    return result
+
+
+def _development_requirements():
+    return [
+        _required_executable('isort', isort_root_spec(),
+                             _missing('isort', 'required for style checks', False)),
+        _required_executable('mypy', mypy_root_spec(),
+                             _missing('mypy', 'required for style checks', False)),
+        _required_executable('flake8', flake8_root_spec(),
+                             _missing('flake8', 'required for style checks', False)),
+        _required_executable('black', black_root_spec(),
+                             _missing('black', 'required for code formatting', False))
+    ]
+
+
+def status_message(section):
+    """Return a status message to be printed to screen that refers to the
+    section passed as argument and a bool which is True if there are missing
+    dependencies.
+
+    Args:
+        section (str): either 'core' or 'buildcache' or 'optional' or 'develop'
+    """
+    pass_token, fail_token = '@*g{[PASS]}', '@*r{[FAIL]}'
+
+    # Contain the header of the section and a list of requirements
+    spack_sections = {
+        'core': ("{0} @*{{Core Functionalities}}", _core_requirements),
+        'buildcache': ("{0} @*{{Binary packages}}", _buildcache_requirements),
+        'optional': ("{0} @*{{Optional Features}}", _optional_requirements),
+        'develop': ("{0} @*{{Development Dependencies}}", _development_requirements)
+    }
+    msg, required_software = spack_sections[section]
+
+    with ensure_bootstrap_configuration():
+        missing_software = False
+        for found, err_msg in required_software():
+            if not found:
+                missing_software = True
+                msg += "\n  " + err_msg
+        msg += '\n'
+        msg = msg.format(pass_token if not missing_software else fail_token)
+    return msg, missing_software
