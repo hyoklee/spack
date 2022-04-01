@@ -1,9 +1,10 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Test detection of compiler version"""
 import os
+import sys
 
 import pytest
 
@@ -320,6 +321,8 @@ def test_xl_version_detection(version_str, expected_version):
     assert version == expected_version
 
 
+@pytest.mark.skipif(sys.platform == 'win32',
+                    reason="Not supported on Windows (yet)")
 @pytest.mark.parametrize('compiler,version', [
     ('gcc', '8.1.0'),
     ('gcc', '1.0.0-foo'),

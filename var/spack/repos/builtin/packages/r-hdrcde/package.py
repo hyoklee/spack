@@ -1,11 +1,13 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
 class RHdrcde(RPackage):
-    """Computation of highest density regions in one and two
+    """Highest Density Regions and Conditional Density Estimation.
+
+    Computation of highest density regions in one and two
     dimensions, kernel estimation of univariate density functions
     conditional on one covariate,and multimodal regression."""
 

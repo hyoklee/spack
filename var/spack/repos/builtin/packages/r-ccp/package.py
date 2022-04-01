@@ -1,12 +1,14 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
 class RCcp(RPackage):
-    """Significance tests for canonical correlation analysis,
-    including asymptotic tests and a Monte Carlo method"""
+    """Significance Tests for Canonical Correlation Analysis (CCA).
+
+    Significance tests for canonical correlation analysis, including asymptotic
+    tests and a Monte Carlo method"""
 
     cran = 'CCP'
 

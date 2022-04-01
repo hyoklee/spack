@@ -1,11 +1,13 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
 class RFda(RPackage):
-    """These functions were developed to support functional data
+    """Functional Data Analysis.
+
+    These functions were developed to support functional data
     analysis as described in Ramsay, J. O. and Silverman, B. W. (2005)
     Functional Data Analysis. New York: Springer and in Ramsay, J. O.,
     Hooker, Giles, and Graves, Spencer (2009). """
