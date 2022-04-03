@@ -1,4 +1,4 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,9 +11,10 @@ class OrTools(CMakePackage):
 
     homepage = "https://developers.google.com/optimization/"
     url      = "https://github.com/google/or-tools/archive/v7.8.tar.gz"
+    maintainers = ['hyoklee']
 
     version('7.8', sha256='d93a9502b18af51902abd130ff5f23768fcf47e266e6d1f34b3586387aa2de68')
-
+    variant('coin', default=False)
     depends_on('cmake@3.14:', type='build')
     depends_on('protobuf@3.12.2:')
     depends_on('gflags@2.2.2')
@@ -24,19 +25,17 @@ class OrTools(CMakePackage):
     depends_on('cgl@0.60.3')
     depends_on('clp@1.17.4')
     depends_on('osi@0.108.6')
-    depends_on('coinutils@2.11.4')
-
+    depends_on('coinutils@2.11.4', when='+coin')
 
     def cmake_args(self):
         cmake_args = []
         cmake_args.append('-DBUILD_DEPS=OFF')
         cmake_args.append('-DBUILD_PYTHON=OFF')
+        if '+coin' in self.spec:
+            cmake_args.append('-DUSE_COINOR=ON')
+        else:
+            cmake_args.append('-DUSE_COINOR=OFF')
         cmake_args.append('-DUSE_SCIP=ON')
         cmake_args.append('-DBUILD_SCIP=ON')
-        cmake_args.append('-DUSE_PDLP=OFF')
         cmake_args.append('-DBUILD_TESTING=OFF')
         return cmake_args
-
-#    def install(self, spec, prefix):
-#        with working_dir(self.build_directory):
-#            make("install")
