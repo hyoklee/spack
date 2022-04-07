@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -11,8 +11,8 @@ class PyPynn(PythonPackage):
         network models
     """
 
-    homepage = "http://neuralensemble.org/PyNN/"
-    url      = "https://pypi.io/packages/source/P/PyNN/PyNN-0.8.3.tar.gz"
+    homepage = "https://neuralensemble.org/PyNN/"
+    pypi = "PyNN/PyNN-0.8.3.tar.gz"
     git      = "https://github.com/NeuralEnsemble/PyNN.git"
 
     version('0.9.1', sha256='bbc60fea3235427191feb2daa0e2fa07eb1c3946104c068ac8a2a0501263b0b1')
@@ -21,7 +21,9 @@ class PyPynn(PythonPackage):
     version('0.8.1', sha256='ce94246284588414d1570c1d5d697805f781384e771816727c830b01ee30fe39')
     version('0.7.5', sha256='15f75f422f3b71c6129ecef23f29d8baeb3ed6502e7a321b8a2596c78ef7e03c')
 
-    depends_on('python@2.6:2.8,3.3:')
+    depends_on('python@2.6:2.8,3.3:', type=('build', 'run'))
+    # pip silently replaces distutils with setuptools
+    depends_on('py-setuptools', type='build')
     depends_on('py-jinja2@2.7:',        type=('build', 'run'))
     depends_on('py-docutils@0.10:',     type=('build', 'run'))
     depends_on('py-numpy@1.5:',         type=('build', 'run'))
@@ -30,5 +32,3 @@ class PyPynn(PythonPackage):
 
     depends_on('py-neo@0.3:0.4.1',      type=('build', 'run'), when="@:0.8.3")
     depends_on('py-neo@0.5.0:',         type=('build', 'run'), when="@0.9.0:")
-
-    depends_on('py-mock@1.0:', type='test')

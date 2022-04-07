@@ -1,30 +1,23 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import itertools
+
 from six import string_types
 
-from spack.spec import Spec
+import spack.variant
 from spack.error import SpackError
-
-
-def spec_ordering_key(s):
-    if s.startswith('^'):
-        return 5
-    elif s.startswith('/'):
-        return 4
-    elif s.startswith('%'):
-        return 3
-    elif any(s.startswith(c) for c in '~-+@') or '=' in s:
-        return 2
-    else:
-        return 1
+from spack.spec import Spec
 
 
 class SpecList(object):
 
-    def __init__(self, name='specs', yaml_list=[], reference={}):
+    def __init__(self, name='specs', yaml_list=None, reference=None):
+        # Normalize input arguments
+        yaml_list = yaml_list or []
+        reference = reference or {}
+
         self.name = name
         self._reference = reference  # TODO: Do we need defensive copy here?
 
@@ -120,23 +113,42 @@ class SpecList(object):
         self._constraints = None
         self._specs = None
 
+    def _parse_reference(self, name):
+        sigil = ''
+        name = name[1:]
+
+        # Parse specs as constraints
+        if name.startswith('^') or name.startswith('%'):
+            sigil = name[0]
+            name = name[1:]
+
+        # Make sure the reference is valid
+        if name not in self._reference:
+            msg = 'SpecList %s refers to ' % self.name
+            msg += 'named list %s ' % name
+            msg += 'which does not appear in its reference dict'
+            raise UndefinedReferenceError(msg)
+
+        return (name, sigil)
+
     def _expand_references(self, yaml):
         if isinstance(yaml, list):
-            for idx, item in enumerate(yaml):
+            ret = []
+
+            for item in yaml:
+                # if it's a reference, expand it
                 if isinstance(item, string_types) and item.startswith('$'):
-                    name = item[1:]
-                    if name in self._reference:
-                        ret = [self._expand_references(i) for i in yaml[:idx]]
-                        ret += self._reference[name].specs_as_yaml_list
-                        ret += self._expand_references(yaml[idx + 1:])
-                        return ret
-                    else:
-                        msg = 'SpecList %s refers to ' % self.name
-                        msg += 'named list %s ' % name
-                        msg += 'which does not appear in its reference dict'
-                        raise UndefinedReferenceError(msg)
-            # No references in this
-            return [self._expand_references(item) for item in yaml]
+                    # replace the reference and apply the sigil if needed
+                    name, sigil = self._parse_reference(item)
+                    referent = [
+                        _sigilify(item, sigil)
+                        for item in self._reference[name].specs_as_yaml_list
+                    ]
+                    ret.extend(referent)
+                else:
+                    # else just recurse
+                    ret.append(self._expand_references(item))
+            return ret
         elif isinstance(yaml, dict):
             # There can't be expansions in dicts
             return dict((name, self._expand_references(val))
@@ -152,34 +164,65 @@ class SpecList(object):
         return self.specs[key]
 
 
-def _expand_matrix_constraints(object, specify=True):
-    # recurse so we can handle nexted matrices
+def _expand_matrix_constraints(matrix_config):
+    # recurse so we can handle nested matrices
     expanded_rows = []
-    for row in object['matrix']:
+    for row in matrix_config['matrix']:
         new_row = []
         for r in row:
             if isinstance(r, dict):
-                new_row.extend(_expand_matrix_constraints(r, specify=False))
+                # Flatten the nested matrix into a single row of constraints
+                new_row.extend(
+                    [[' '.join([str(c) for c in expanded_constraint_list])]
+                     for expanded_constraint_list in _expand_matrix_constraints(r)]
+                )
             else:
                 new_row.append([r])
         expanded_rows.append(new_row)
 
+    excludes = matrix_config.get('exclude', [])  # only compute once
+    sigil = matrix_config.get('sigil', '')
+
     results = []
-    excludes = object.get('exclude', [])  # only compute once
     for combo in itertools.product(*expanded_rows):
         # Construct a combined spec to test against excludes
-        flat_combo = [constraint for list in combo for constraint in list]
-        ordered_combo = sorted(flat_combo, key=spec_ordering_key)
-        test_spec = Spec(' '.join(ordered_combo))
+        flat_combo = [constraint for constraint_list in combo
+                      for constraint in constraint_list]
+        flat_combo = [Spec(x) for x in flat_combo]
+
+        test_spec = flat_combo[0].copy()
+        for constraint in flat_combo[1:]:
+            test_spec.constrain(constraint)
+
+        # Abstract variants don't have normal satisfaction semantics
+        # Convert all variants to concrete types.
+        # This method is best effort, so all existing variants will be
+        # converted before any error is raised.
+        # Catch exceptions because we want to be able to operate on
+        # abstract specs without needing package information
+        try:
+            spack.variant.substitute_abstract_variants(test_spec)
+        except spack.variant.UnknownVariantError:
+            pass
         if any(test_spec.satisfies(x) for x in excludes):
             continue
 
+        if sigil:
+            flat_combo[0] = Spec(sigil + str(flat_combo[0]))
+
         # Add to list of constraints
-        if specify:
-            results.append([Spec(x) for x in ordered_combo])
-        else:
-            results.append(ordered_combo)
+        results.append(flat_combo)
+
     return results
+
+
+def _sigilify(item, sigil):
+    if isinstance(item, dict):
+        if sigil:
+            item['sigil'] = sigil
+        return item
+    else:
+        return sigil + item
 
 
 class SpecListError(SpackError):

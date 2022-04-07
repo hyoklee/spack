@@ -1,9 +1,10 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import sys
+
 from llnl.util.tty.color import colorize
 
 description = "get help on spack and its commands"
@@ -35,6 +36,10 @@ spec expression syntax:
       @g{%compiler@version}             build with specific compiler version
       @g{%compiler@min:max}             specific version range (see above)
 
+    compiler flags:
+      @g{cflags="flags"}                cppflags, cflags, cxxflags,
+                                    fflags, ldflags, ldlibs
+
     variants:
       @B{+variant}                      enable <variant>
       @r{-variant} or @r{~variant}          disable <variant>
@@ -42,7 +47,7 @@ spec expression syntax:
       @B{variant=value1,value2,value3}  set multi-value <variant> values
 
     architecture variants:
-      @m{platform=platform}             linux, darwin, cray, bgq, etc.
+      @m{platform=platform}             linux, darwin, cray, etc.
       @m{os=operating_system}           specific <operating_system>
       @m{target=target}                 specific <target> processor
       @m{arch=platform-os-target}       shortcut for all three above
@@ -64,7 +69,7 @@ spec expression syntax:
       hdf5 @B{+mpi}                     hdf5 with mpi enabled
       hdf5 @r{~mpi}                     hdf5 with mpi disabled
       hdf5 @B{+mpi} ^mpich              hdf5 with mpi, using mpich
-      hdf5 @B{+mpi} ^openmpi@c{@1.7}        hdf5 wtih mpi, using openmpi 1.7
+      hdf5 @B{+mpi} ^openmpi@c{@1.7}        hdf5 with mpi, using openmpi 1.7
       boxlib @B{dim=2}                  boxlib built for 2 dimensions
       libdwarf @g{%intel} ^libelf@g{%gcc}
           libdwarf, built with intel compiler, linked to libelf built with gcc

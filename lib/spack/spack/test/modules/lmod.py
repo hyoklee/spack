@@ -1,20 +1,28 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
-
 import re
+import sys
+
 import pytest
 
+import spack.environment as ev
+import spack.main
 import spack.modules.lmod
+import spack.spec
 
 mpich_spec_string = 'mpich@3.0.4'
 mpileaks_spec_string = 'mpileaks'
 libdwarf_spec_string = 'libdwarf arch=x64-linux'
 
+install = spack.main.SpackCommand('install')
+
 #: Class of the writer tested in this module
 writer_cls = spack.modules.lmod.LmodModulefileWriter
+
+pytestmark = pytest.mark.skipif(sys.platform == "win32",
+                                reason="does not run on windows")
 
 
 @pytest.fixture(params=[
@@ -27,6 +35,7 @@ def compiler(request):
 
 @pytest.fixture(params=[
     ('mpich@3.0.4', ('mpi',)),
+    ('mpich@3.0.1', []),
     ('openblas@0.2.15', ('blas',)),
     ('openblas-with-lapack@0.2.15', ('blas', 'lapack'))
 ])
@@ -54,7 +63,8 @@ class TestLmod(object):
         # Check that the compiler part of the path has no hash and that it
         # is transformed to r"Core" if the compiler is listed among core
         # compilers
-        if compiler == 'clang@3.3':
+        # Check that specs listed as core_specs are transformed to "Core"
+        if compiler == 'clang@3.3' or spec_string == 'mpich@3.0.1':
             assert 'Core' in layout.available_path_parts
         else:
             assert compiler.replace('@', '/') in layout.available_path_parts
@@ -90,13 +100,7 @@ class TestLmod(object):
         module_configuration('autoload_direct')
         content = modulefile_content(mpileaks_spec_string)
 
-        assert len([x for x in content if 'if not isloaded(' in x]) == 2
-        assert len([x for x in content if 'load(' in x]) == 2
-
-        # The configuration file doesn't set the verbose keyword
-        # that defaults to False
-        messages = [x for x in content if 'LmodMessage("Autoloading' in x]
-        assert len(messages) == 0
+        assert len([x for x in content if 'depends_on(' in x]) == 2
 
     def test_autoload_all(self, modulefile_content, module_configuration):
         """Tests the automatic loading of all dependencies."""
@@ -104,12 +108,7 @@ class TestLmod(object):
         module_configuration('autoload_all')
         content = modulefile_content(mpileaks_spec_string)
 
-        assert len([x for x in content if 'if not isloaded(' in x]) == 5
-        assert len([x for x in content if 'load(' in x]) == 5
-
-        # The configuration file sets the verbose keyword to True
-        messages = [x for x in content if 'LmodMessage("Autoloading' in x]
-        assert len(messages) == 5
+        assert len([x for x in content if 'depends_on(' in x]) == 5
 
     def test_alter_environment(self, modulefile_content, module_configuration):
         """Tests modifications to run-time environment."""
@@ -124,7 +123,7 @@ class TestLmod(object):
         assert len([x for x in content if 'unsetenv("BAR")' in x]) == 1
 
         content = modulefile_content(
-            'libdwarf %clang platform=test target=x86'
+            'libdwarf platform=test target=core2'
         )
 
         assert len(
@@ -152,8 +151,7 @@ class TestLmod(object):
         module_configuration('blacklist')
         content = modulefile_content(mpileaks_spec_string)
 
-        assert len([x for x in content if 'if not isloaded(' in x]) == 1
-        assert len([x for x in content if 'load(' in x]) == 1
+        assert len([x for x in content if 'depends_on(' in x]) == 1
 
     def test_no_hash(self, factory, module_configuration):
         """Makes sure that virtual providers (in the hierarchy) always
@@ -227,7 +225,7 @@ class TestLmod(object):
         content = modulefile_content('override-module-templates')
         assert 'Override even better!' in content
 
-        content = modulefile_content('mpileaks arch=x86-linux')
+        content = modulefile_content('mpileaks target=x86_64')
         assert 'Override even better!' in content
 
     @pytest.mark.usefixtures('config')
@@ -278,3 +276,80 @@ class TestLmod(object):
         assert str(spec.target.family) in writer.layout.arch_dirname
         if spec.target.family != spec.target:
             assert str(spec.target) not in writer.layout.arch_dirname
+
+    def test_projections_specific(self, factory, module_configuration):
+        """Tests reading the correct naming scheme."""
+
+        # This configuration has no error, so check the conflicts directives
+        # are there
+        module_configuration('projections')
+
+        # Test we read the expected configuration for the naming scheme
+        writer, _ = factory('mpileaks')
+        expected = {
+            'all': '{name}/v{version}',
+            'mpileaks': '{name}-mpiprojection'
+        }
+
+        assert writer.conf.projections == expected
+        projection = writer.spec.format(writer.conf.projections['mpileaks'])
+        assert projection in writer.layout.use_name
+
+    def test_projections_all(self, factory, module_configuration):
+        """Tests reading the correct naming scheme."""
+
+        # This configuration has no error, so check the conflicts directives
+        # are there
+        module_configuration('projections')
+
+        # Test we read the expected configuration for the naming scheme
+        writer, _ = factory('libelf')
+        expected = {
+            'all': '{name}/v{version}',
+            'mpileaks': '{name}-mpiprojection'
+        }
+
+        assert writer.conf.projections == expected
+        projection = writer.spec.format(writer.conf.projections['all'])
+        assert projection in writer.layout.use_name
+
+    def test_config_backwards_compat(self, mutable_config):
+        settings = {
+            'enable': ['lmod'],
+            'lmod': {
+                'core_compilers': ['%gcc@0.0.0']
+            }
+        }
+
+        spack.config.set('modules:default', settings)
+        new_format = spack.modules.lmod.configuration('default')
+
+        spack.config.set('modules', settings)
+        old_format = spack.modules.lmod.configuration('default')
+
+        assert old_format == new_format
+        assert old_format == settings['lmod']
+
+    def test_modules_relative_to_view(
+        self, tmpdir, modulefile_content, module_configuration, install_mockery,
+        mock_fetch
+    ):
+        with ev.Environment(str(tmpdir), with_view=True) as e:
+            module_configuration('with_view')
+            install('cmake')
+
+            spec = spack.spec.Spec('cmake').concretized()
+
+            content = modulefile_content('cmake')
+            expected = e.default_view.get_projection_for_spec(spec)
+            # Rather than parse all lines, ensure all prefixes in the content
+            # point to the right one
+            assert any(expected in line for line in content)
+            assert not any(spec.prefix in line for line in content)
+
+    def test_modules_no_arch(self, factory, module_configuration):
+        module_configuration('no_arch')
+        module, spec = factory(mpileaks_spec_string)
+        path = module.layout.filename
+
+        assert str(spec.os) not in path

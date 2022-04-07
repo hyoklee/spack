@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,9 +15,11 @@ class PyColorpy(PythonPackage):
     """
 
     homepage = "http://markkness.net/colorpy/ColorPy.html"
-    url      = "https://pypi.org/packages/source/c/colorpy/colorpy-0.1.1.tar.gz"
+    pypi = "colorpy/colorpy-0.1.1.tar.gz"
 
     version('0.1.1', sha256='e400a7e879adc83c6098dde13cdd093723f3936778c245b1caf88f5f1411170d')
 
+    # pip silently replaces distutils with setuptools
+    depends_on('py-setuptools', type='build')
     depends_on('py-numpy', type='run')
     depends_on('py-matplotlib', type='run')

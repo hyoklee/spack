@@ -1,29 +1,23 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-import os
 import hashlib
-import base64
-import sys
+import os
 
 import llnl.util.tty as tty
 
-import spack.util.spack_json as sjson
-import spack.util.file_permissions as fp
-import spack.store
 import spack.filesystem_view
+import spack.store
+import spack.util.file_permissions as fp
+import spack.util.py2 as compat
+import spack.util.spack_json as sjson
 
 
 def compute_hash(path):
     with open(path, 'rb') as f:
         sha1 = hashlib.sha1(f.read()).digest()
-        b32 = base64.b32encode(sha1)
-
-        if sys.version_info[0] >= 3:
-            b32 = b32.decode()
-
-        return b32
+        return compat.b32encode(sha1)
 
 
 def create_manifest_entry(path):
@@ -117,13 +111,13 @@ def check_entry(path, data):
     return res
 
 
-def check_file_manifest(file):
-    dirname = os.path.dirname(file)
+def check_file_manifest(filename):
+    dirname = os.path.dirname(filename)
 
     results = VerificationResults()
     while spack.store.layout.metadata_dir not in os.listdir(dirname):
         if dirname == os.path.sep:
-            results.add_error(file, 'not owned by any package')
+            results.add_error(filename, 'not owned by any package')
             return results
         dirname = os.path.dirname(dirname)
 
@@ -132,20 +126,20 @@ def check_file_manifest(file):
                                  spack.store.layout.manifest_file_name)
 
     if not os.path.exists(manifest_file):
-        results.add_error(file, "manifest missing")
+        results.add_error(filename, "manifest missing")
         return results
 
     try:
         with open(manifest_file, 'r') as f:
             manifest = sjson.load(f)
     except Exception:
-        results.add_error(file, "manifest corrupted")
+        results.add_error(filename, "manifest corrupted")
         return results
 
-    if file in manifest:
-        results += check_entry(file, manifest[file])
+    if filename in manifest:
+        results += check_entry(filename, manifest[filename])
     else:
-        results.add_error(file, 'not owned by any package')
+        results.add_error(filename, 'not owned by any package')
     return results
 
 

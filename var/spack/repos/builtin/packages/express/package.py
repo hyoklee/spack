@@ -1,11 +1,12 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
-import os.path
 import glob
+import os.path
+
+from spack import *
 
 
 class Express(CMakePackage):
@@ -20,13 +21,14 @@ class Express(CMakePackage):
     version('1.5.2', sha256='25a63cca3dac6bd0daf04d2f0b2275e47d2190c90522bd231b1d7a875a59a52e')
     version('1.5.1', sha256='fa3522de9cc25f1ede22fa196928912a6da2a2038681911115ec3e4da3d61293')
 
-    depends_on('boost')
+    depends_on('boost+date_time+exception+filesystem+system+chrono+atomic+container+math+thread+program_options')
     depends_on('bamtools')
     depends_on('zlib')
 
     # patch from the debian package repo:
     # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=811859
     patch('gcc-6.patch', when='%gcc@6.0.0:')
+    patch('gcc-6.patch', when='%fj')
 
     def patch(self):
         with working_dir('src'):

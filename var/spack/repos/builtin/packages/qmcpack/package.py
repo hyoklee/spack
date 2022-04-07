@@ -1,10 +1,12 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
 import llnl.util.tty as tty
+
+from spack import *
+from spack.pkg.builtin.boost import Boost
 
 
 class Qmcpack(CMakePackage, CudaPackage):
@@ -12,9 +14,9 @@ class Qmcpack(CMakePackage, CudaPackage):
        Carlo (QMC) simulation code."""
 
     # Package information
-    homepage = "http://www.qmcpack.org/"
+    homepage = "https://www.qmcpack.org/"
     git      = "https://github.com/QMCPACK/qmcpack.git"
-
+    maintainers = ['ye-luo']
     tags = ['ecp', 'ecp-apps']
 
     # This download method is untrusted, and is not recommended by the
@@ -22,6 +24,11 @@ class Qmcpack(CMakePackage, CudaPackage):
     # can occasionally change.
     # NOTE: 12/19/2017 QMCPACK 3.0.0 does not build properly with Spack.
     version('develop')
+    version('3.13.0', tag='v3.13.0')
+    version('3.12.0', tag='v3.12.0')
+    version('3.11.0', tag='v3.11.0')
+    version('3.10.0', tag='v3.10.0')
+    version('3.9.2', tag='v3.9.2')
     version('3.9.1', tag='v3.9.1')
     version('3.9.0', tag='v3.9.0')
     version('3.8.0', tag='v3.8.0')
@@ -39,30 +46,46 @@ class Qmcpack(CMakePackage, CudaPackage):
             description='The build type to build',
             values=('Debug', 'Release', 'RelWithDebInfo'))
     variant('mpi', default=True, description='Build with MPI support')
-    variant('phdf5', default=True, description='Build with parallel collective I/O')
+    variant('phdf5', default=False, description='Build with parallel collective I/O')
     variant('complex', default=False,
             description='Build the complex (general twist/k-point) version')
     variant('mixed', default=False,
             description='Build the mixed precision (mixture of single and '
-                        'double precision) version for gpu and cpu')
+                        'double precision) version')
     variant('soa', default=True,
-            description='Build with Structure-of-Array instead of '
-                        'Array-of-Structure code. Only for CPU code'
-                        'and only in mixed precision')
-    variant('timers', default=False,
+            description='Build with Structure-of-Array (SoA) instead of '
+                        'Array-of-Structure code (AoS). This is a legacy '
+                        'option and the AoS code is not available after  '
+                        'v3.10.0. Only affected performance, not results.')
+    variant('timers', default=True,
             description='Build with support for timers')
     variant('da', default=False,
             description='Install with support for basic data analysis tools')
     variant('gui', default=False,
             description='Install with Matplotlib (long installation time)')
-    variant('qe', default=False,
-            description='Install with patched Quantum Espresso 6.4.1')
+    variant('afqmc', default=False,
+            description='Install with AFQMC support. NOTE that if used in '
+                        'combination with CUDA, only AFQMC will have CUDA.')
+    variant('ppconvert', default=False,
+            description='Install with pseudopotential converter.')
 
+    # Notes about CUDA-centric peculiarities:
+    #
     # cuda variant implies mixed precision variant by default, but there is
     # no way to express this in variant syntax, need something like
     # variant('+mixed', default=True, when='+cuda', description="...")
+    #
+    # cuda+afqmc variant will not build the legacy CUDA code in real-space
+    # QMCPACK. This is due to a conflict in the build system. This is not
+    # worth fixing since the legacy CUDA code, will be superseded
+    # by the OpenMP 4.5 code.
 
     # high-level variant conflicts
+    conflicts(
+        '~soa',
+        when='@3.10.0:',
+        msg='AoS code path is not available after QMCPACK v3.10.0')
+
     conflicts(
         '+phdf5',
         when='~mpi',
@@ -74,25 +97,44 @@ class Qmcpack(CMakePackage, CudaPackage):
         when='+cuda@:3.4.0',
         msg='QMCPACK CUDA+SOA variant does not exist prior to v. 3.5.0.')
 
-    conflicts(
-        '+qe',
-        when='~mpi',
-        msg='Serial QMCPACK with serial QE converter not supported. '
-        'Configure in serial QE + serial HDF5 will not run correctly.')
-
     conflicts('^openblas+ilp64',
               msg='QMCPACK does not support OpenBLAS 64-bit integer variant')
 
-    conflicts('^intel-mkl+ilp64',
-              msg='QMCPACK does not support MKL 64-bit integer variant')
+    conflicts('^openblas threads=none',
+              msg='QMCPACK does not support OpenBLAS without threading')
+
+    conflicts('^openblas threads=pthreads',
+              msg='QMCPACK does not support OpenBLAS with pthreads')
+
+    conflicts('cuda_arch=none',
+              when='+cuda',
+              msg='A value for cuda_arch must be specified. Add cuda_arch=XX')
+
+    # Omitted for now due to concretizer bug
+    # conflicts('^intel-mkl+ilp64',
+    #           msg='QMCPACK does not support MKL 64-bit integer variant')
+
+    # QMCPACK 3.10.0 increased the minimum requirements for compiler versions
+    newer_compiler_warning = 'QMCPACK v3.10.0 or later requires a newer ' \
+                             'version of this compiler'
+    conflicts('%gcc@:6', when='@3.10.0:', msg=newer_compiler_warning)
+    conflicts('%intel@:18', when='@3.10.0:', msg=newer_compiler_warning)
+    conflicts('%clang@:6', when='@3.10.0:', msg=newer_compiler_warning)
 
     # QMCPACK 3.6.0 or later requires support for C++14
-    compiler_warning = 'QMCPACK 3.6.0 or later requires a ' \
-                       'compiler with support for C++14'
-    conflicts('%gcc@:4', when='@3.6.0:', msg=compiler_warning)
-    conflicts('%intel@:17', when='@3.6.0:', msg=compiler_warning)
-    conflicts('%pgi@:17', when='@3.6.0:', msg=compiler_warning)
-    conflicts('%llvm@:3.4', when='@3.6.0:', msg=compiler_warning)
+    cpp14_warning = 'QMCPACK v3.6.0 or later requires a ' \
+                    'compiler with support for C++14'
+    conflicts('%gcc@:4', when='@3.6.0:', msg=cpp14_warning)
+    conflicts('%intel@:17', when='@3.6.0:', msg=cpp14_warning)
+    conflicts('%pgi@:17', when='@3.6.0:', msg=cpp14_warning)
+    conflicts('%clang@:3.4', when='@3.6.0:', msg=cpp14_warning)
+
+    conflicts('+afqmc', when='@:3.6.0', msg='AFQMC not recommended before v3.7')
+    conflicts('+afqmc', when='~mpi', msg='AFQMC requires building with +mpi')
+    conflicts('+afqmc', when='%gcc@:6.0', msg='AFQMC code requires gcc@6.1 or greater')
+    conflicts('+afqmc', when='%apple-clang@:9.2', msg='AFQMC code requires clang 4.1 or greater')
+    conflicts('+afqmc', when='%clang@:4.0', msg='AFQMC code requires clang 4.1 or greater')
+    conflicts('+afqmc', when='%intel@:18', msg='AFQMC code requires intel19 or greater')
 
     # Prior to QMCPACK 3.5.0 Intel MKL was not properly detected with
     # non-Intel compilers without a Spack-based hack. This hack
@@ -113,8 +155,13 @@ class Qmcpack(CMakePackage, CudaPackage):
     # Essential libraries
     depends_on('cmake@3.4.3:', when='@:3.5.0', type='build')
     depends_on('cmake@3.6.0:', when='@3.6.0:', type='build')
-    depends_on('boost')
-    depends_on('boost@1.61.0:', when='@3.6.0:')
+    depends_on('cmake@3.14.0:', when='@3.10.0:', type='build')
+
+    # TODO: replace this with an explicit list of components of Boost,
+    # for instance depends_on('boost +filesystem')
+    # See https://github.com/spack/spack/pull/22303 for reference
+    depends_on(Boost.with_default_variants, type='build')
+    depends_on('boost@1.61.0:', when='@3.6.0:', type='build')
     depends_on('libxml2')
     depends_on('mpi', when='+mpi')
     depends_on('python@3:', when='@3.9:')
@@ -122,8 +169,6 @@ class Qmcpack(CMakePackage, CudaPackage):
     # HDF5
     depends_on('hdf5~mpi', when='~phdf5')
     depends_on('hdf5+mpi', when='+phdf5')
-    depends_on('hdf5+hl+fortran~mpi', when='+qe~phdf5')
-    depends_on('hdf5+hl+fortran+mpi', when='+qe+phdf5')
 
     # Math libraries
     depends_on('blas')
@@ -141,34 +186,24 @@ class Qmcpack(CMakePackage, CudaPackage):
     # py-matplotlib leads to a long complex DAG for dependencies
     depends_on('py-matplotlib', when='+gui', type='run')
 
-    # B-spline basis calculation require a patched version of
-    # Quantum Espresso 6.4.1 (see QMCPACK manual)
-    patch_url = 'https://raw.githubusercontent.com/QMCPACK/qmcpack/develop/external_codes/quantum_espresso/add_pw2qmcpack_to_qe-6.4.1.diff'
-    patch_checksum = '57cb1b06ee2653a87c3acc0dd4f09032fcf6ce6b8cbb9677ae9ceeb6a78f85e2'
-    depends_on('quantum-espresso~patch@6.4.1+mpi hdf5=parallel',
-               patches=patch(patch_url, sha256=patch_checksum),
-               when='+qe+phdf5', type='run')
-
-    depends_on('quantum-espresso~patch@6.4.1+mpi hdf5=serial',
-               patches=patch(patch_url, sha256=patch_checksum),
-               when='+qe~phdf5', type='run')
-
     # Backport several patches from recent versions of QMCPACK
     # The test_numerics unit test is broken prior to QMCPACK 3.3.0
-    patch_url = 'https://patch-diff.githubusercontent.com/raw/QMCPACK/qmcpack/pull/621.patch'
-    patch_checksum = 'e2ff7a6f0f006856085d4aab6d31f32f16353e41f760a33a7ef75f3ecce6a5d6'
+    patch_url = 'https://github.com/QMCPACK/qmcpack/pull/621.patch?full_index=1'
+    patch_checksum = '54484b722df264dae3fd0c1094883b17431617e278eeba2cffbd720b36c9e21a'
     patch(patch_url, sha256=patch_checksum, when='@3.1.0:3.3.0')
 
     # FindMKL.cmake has an issues prior to QMCPACK 3.3.0
-    patch_url = 'https://patch-diff.githubusercontent.com/raw/QMCPACK/qmcpack/pull/623.patch'
-    patch_checksum = '3eb9dec05fd1a544318ff84cd8b5926cfc6b46b375c7f3b012ccf0b50cf617b7'
+    patch_url = 'https://github.com/QMCPACK/qmcpack/pull/623.patch?full_index=1'
+    patch_checksum = '9e444d627ab22ad5f31797aec0c0d662463055955eff1c84fbde274e0259db6b'
     patch(patch_url, sha256=patch_checksum, when='@3.1.0:3.3.0')
 
     # git-rev files for not git builds issues prior to QMCPACK 3.3.0
-    patch_url = 'https://patch-diff.githubusercontent.com/raw/QMCPACK/qmcpack/pull/643.patch'
-    patch_checksum = 'c066c79901a612cf8848135e0d544efb114534cca70b90bfccc8ed989d3d9dde'
+    patch_url = 'https://github.com/QMCPACK/qmcpack/pull/643.patch?full_index=1'
+    patch_checksum = 'd6410e7843f6c062bf9aa8ecf107e573b35c32022927d63f8cf5ad36ccf873c3'
     patch(patch_url, sha256=patch_checksum, when='@3.1.0:3.3.0')
 
+    # the default flag_handler for Spack causes problems for QMCPACK
+    # https://spack.readthedocs.io/en/latest/packaging_guide.html#the-build-environment:
     flag_handler = CMakePackage.build_system_flags
 
     @when('@:3.7.0')
@@ -178,6 +213,22 @@ class Qmcpack(CMakePackage, CudaPackage):
         filter_file(r'$ENV{LIBXML2_HOME}/lib',
                     '${LIBXML2_HOME}/lib $ENV{LIBXML2_HOME}/lib',
                     'CMake/FindLibxml2QMC.cmake')
+
+    @property
+    def build_targets(self):
+        spec = self.spec
+        targets = ['all']
+        if '+ppconvert' in spec:
+            targets.append('ppconvert')
+
+        return targets
+
+    # QMCPACK prefers taking MPI compiler wrappers as CMake compilers.
+    def setup_build_environment(self, env):
+        spec = self.spec
+        if '+mpi' in spec:
+            env.set('CC', spec['mpi'].mpicc)
+            env.set('CXX', spec['mpi'].mpicxx)
 
     def cmake_args(self):
         spec = self.spec
@@ -231,6 +282,11 @@ class Qmcpack(CMakePackage, CudaPackage):
         else:
             args.append('-DQMC_COMPLEX=0')
 
+        if '+afqmc' in spec:
+            args.append('-DBUILD_AFQMC=1')
+        else:
+            args.append('-DBUILD_AFQMC=0')
+
         # When '-DQMC_CUDA=1', CMake automatically sets:
         # '-DQMC_MIXED_PRECISION=1'
         #
@@ -238,7 +294,12 @@ class Qmcpack(CMakePackage, CudaPackage):
         # tested.
 
         if '+cuda' in spec:
-            args.append('-DQMC_CUDA=1')
+            # Cannot support both CUDA builds at the same time, see
+            # earlier notes in this package.
+            if '+afqmc' in spec:
+                args.append('-DENABLE_CUDA=1')
+            else:
+                args.append('-DQMC_CUDA=1')
             cuda_arch_list = spec.variants['cuda_arch'].value
             cuda_arch = cuda_arch_list[0]
             if len(cuda_arch_list) > 1:
@@ -246,14 +307,7 @@ class Qmcpack(CMakePackage, CudaPackage):
                     'QMCPACK only supports compilation for a single '
                     'GPU architecture at a time'
                 )
-            if cuda_arch != 'none':
-                args.append('-DCUDA_ARCH=sm_{0}'.format(cuda_arch))
-            else:
-                # This is the default value set in QMCPACK's CMake
-                # Not possible to set default value for cuda_arch,
-                # thus this won't be stored in the spec, which is
-                # a problem.
-                args.append('-DCUDA_ARCH=sm_35')
+            args.append('-DCUDA_ARCH=sm_{0}'.format(cuda_arch))
         else:
             args.append('-DQMC_CUDA=0')
 
@@ -298,79 +352,45 @@ class Qmcpack(CMakePackage, CudaPackage):
         # Next two environment variables were introduced in QMCPACK 3.5.0
         # Prior to v3.5.0, these lines should be benign but CMake
         # may issue a warning.
-        if 'intel-mkl' in spec:
+        if '^mkl' in spec:
             args.append('-DENABLE_MKL=1')
             args.append('-DMKL_ROOT=%s' % env['MKLROOT'])
         else:
             args.append('-DENABLE_MKL=0')
 
+        # ppconvert is not build by default because it may exhibit numerical
+        # issues on some systems
+        if '+ppconvert' in spec:
+            args.append('-DBUILD_PPCONVERT=1')
+        else:
+            args.append('-DBUILD_PPCONVERT=0')
+
         return args
 
-    # QMCPACK 3.6.0 release and later has a functional 'make install',
-    # the Spack 'def install' is retained for backwards compatiblity.
-    # Note that the two install methods differ in their directory
-    # structure. Additionally, we follow the recommendation on the Spack
-    # website for defining the compilers to be the MPI compiler wrappers.
-    # https://spack.readthedocs.io/en/latest/packaging_guide.html#compiler-wrappers
-    @when('@3.6.0:')
+    # QMCPACK needs custom install method for the following reason:
+    # Note that 3.6.0 release and later has a functioning 'make install',
+    # but still does not install nexus, manual, etc. So, there is no compelling
+    # reason to use QMCPACK's built-in version at this time.
     def install(self, spec, prefix):
-        if '+mpi' in spec:
-            env['CC'] = spec['mpi'].mpicc
-            env['CXX'] = spec['mpi'].mpicxx
-            env['F77'] = spec['mpi'].mpif77
-            env['FC'] = spec['mpi'].mpifc
 
-        with working_dir(self.build_directory):
-            make('install')
-
-    @when('@:3.5.0')
-    def install(self, spec, prefix):
-        if '+mpi' in spec:
-            env['CC'] = spec['mpi'].mpicc
-            env['CXX'] = spec['mpi'].mpicxx
-            env['F77'] = spec['mpi'].mpif77
-            env['FC'] = spec['mpi'].mpifc
-
-        # QMCPACK 'make install' does nothing, which causes
-        # Spack to throw an error.
-        #
-        # This install method creates the top level directory
-        # and copies the bin subdirectory into the appropriate
-        # location. We do not copy include or lib at this time due
-        # to technical difficulties in qmcpack itself.
-
+        # create top-level directory
         mkdirp(prefix)
 
-        # We assume cwd is self.stage.source_path
-
-        # install manual
-        install_tree('manual', prefix.manual)
-
-        # install nexus
+        # We assume cwd is self.stage.source_path, then
+        # install manual, labs, and nexus
+        install_tree('labs', prefix.labs)
         install_tree('nexus', prefix.nexus)
 
+        # install binaries
         with working_dir(self.build_directory):
-            mkdirp(prefix)
-
-            # install binaries
             install_tree('bin', prefix.bin)
 
-    # QMCPACK 3.6.0 install directory structure changed, thus there
-    # thus are two version of the setup_run_environment method
-    @when('@:3.5.0')
     def setup_run_environment(self, env):
         """Set-up runtime environment for QMCPACK.
-        Set PYTHONPATH for basic analysis scripts and for Nexus."""
-        env.prepend_path('PYTHONPATH', self.prefix.nexus)
+        Set PATH and PYTHONPATH for basic analysis scripts for Nexus."""
 
-    @when('@3.6.0:')
-    def setup_run_environment(self, env):
-        """Set-up runtime environment for QMCPACK.
-        Set PYTHONPATH for basic analysis scripts and for Nexus. Binaries
-        are in the  'prefix' directory instead of 'prefix.bin' which is
-        not set by the default module environment"""
-        env.prepend_path('PATH', self.prefix)
-        env.prepend_path('PYTHONPATH', self.prefix)
+        env.prepend_path('PATH', self.prefix.nexus.bin)
+        env.prepend_path('PYTHONPATH', self.prefix.nexus.lib)
 
     @run_after('build')
     @on_package_attributes(run_tests=True)

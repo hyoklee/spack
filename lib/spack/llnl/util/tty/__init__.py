@@ -1,49 +1,61 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from __future__ import unicode_literals
 
-import fcntl
+import contextlib
 import os
 import struct
 import sys
-import termios
 import textwrap
 import traceback
-import six
 from datetime import datetime
+from sys import platform as _platform
+
+import six
 from six import StringIO
 from six.moves import input
 
-from llnl.util.tty.color import cprint, cwrite, cescape, clen
+if _platform != "win32":
+    import fcntl
+    import termios
 
-_debug = False
+from llnl.util.tty.color import cescape, clen, cprint, cwrite
+
+# Globals
+_debug = 0
 _verbose = False
 _stacktrace = False
 _timestamp = False
 _msg_enabled = True
 _warn_enabled = True
 _error_enabled = True
+_output_filter = lambda s: s
 indent = "  "
+
+
+def debug_level():
+    return _debug
 
 
 def is_verbose():
     return _verbose
 
 
-def is_debug():
-    return _debug
+def is_debug(level=1):
+    return _debug >= level
 
 
 def is_stacktrace():
     return _stacktrace
 
 
-def set_debug(flag):
+def set_debug(level=0):
     global _debug
-    _debug = flag
+    assert level >= 0, 'Debug level must be a positive value'
+    _debug = level
 
 
 def set_verbose(flag):
@@ -81,6 +93,18 @@ def warn_enabled():
 
 def error_enabled():
     return _error_enabled
+
+
+@contextlib.contextmanager
+def output_filter(filter_fn):
+    """Context manager that applies a filter to all output."""
+    global _output_filter
+    saved_filter = _output_filter
+    try:
+        _output_filter = filter_fn
+        yield
+    finally:
+        _output_filter = saved_filter
 
 
 class SuppressOutput:
@@ -122,7 +146,7 @@ def process_stacktrace(countback):
     file_list = []
     for frame in st:
         # Check that the file is a spack file
-        if frame[0].find("/spack") >= 0:
+        if frame[0].find(os.path.sep + "spack") >= 0:
             file_list.append(frame[0])
     # We use commonprefix to find what the spack 'root' directory is.
     root_dir = os.path.commonprefix(file_list)
@@ -132,12 +156,17 @@ def process_stacktrace(countback):
     return st_text
 
 
+def show_pid():
+    return is_debug(2)
+
+
 def get_timestamp(force=False):
     """Get a string timestamp"""
     if _debug or _timestamp or force:
         # Note inclusion of the PID is useful for parallel builds.
-        return '[{0}, {1}] '.format(
-            datetime.now().strftime("%Y-%m-%d-%H:%M:%S.%f"), os.getpid())
+        pid = ', {0}'.format(os.getpid()) if show_pid() else ''
+        return '[{0}{1}] '.format(
+            datetime.now().strftime("%Y-%m-%d-%H:%M:%S.%f"), pid)
     else:
         return ''
 
@@ -154,13 +183,23 @@ def msg(message, *args, **kwargs):
     if _stacktrace:
         st_text = process_stacktrace(2)
     if newline:
-        cprint("@*b{%s==>} %s%s" % (
-            st_text, get_timestamp(), cescape(message)))
+        cprint(
+            "@*b{%s==>} %s%s" % (
+                st_text,
+                get_timestamp(),
+                cescape(_output_filter(message))
+            )
+        )
     else:
-        cwrite("@*b{%s==>} %s%s" % (
-            st_text, get_timestamp(), cescape(message)))
+        cwrite(
+            "@*b{%s==>} %s%s" % (
+                st_text,
+                get_timestamp(),
+                cescape(_output_filter(message))
+            )
+        )
     for arg in args:
-        print(indent + six.text_type(arg))
+        print(indent + _output_filter(six.text_type(arg)))
 
 
 def info(message, *args, **kwargs):
@@ -176,18 +215,29 @@ def info(message, *args, **kwargs):
     st_text = ""
     if _stacktrace:
         st_text = process_stacktrace(st_countback)
-    cprint("@%s{%s==>} %s%s" % (
-        format, st_text, get_timestamp(), cescape(six.text_type(message))
-    ), stream=stream)
+    cprint(
+        "@%s{%s==>} %s%s" % (
+            format,
+            st_text,
+            get_timestamp(),
+            cescape(_output_filter(six.text_type(message)))
+        ),
+        stream=stream
+    )
     for arg in args:
         if wrap:
             lines = textwrap.wrap(
-                six.text_type(arg), initial_indent=indent,
-                subsequent_indent=indent, break_long_words=break_long_words)
+                _output_filter(six.text_type(arg)),
+                initial_indent=indent,
+                subsequent_indent=indent,
+                break_long_words=break_long_words
+            )
             for line in lines:
                 stream.write(line + '\n')
         else:
-            stream.write(indent + six.text_type(arg) + '\n')
+            stream.write(
+                indent + _output_filter(six.text_type(arg)) + '\n'
+            )
 
 
 def verbose(message, *args, **kwargs):
@@ -197,7 +247,8 @@ def verbose(message, *args, **kwargs):
 
 
 def debug(message, *args, **kwargs):
-    if _debug:
+    level = kwargs.get('level', 1)
+    if is_debug(level):
         kwargs.setdefault('format', 'g')
         kwargs.setdefault('stream', sys.stderr)
         info(message, *args, **kwargs)
@@ -322,22 +373,29 @@ def hline(label=None, **kwargs):
 
 def terminal_size():
     """Gets the dimensions of the console: (rows, cols)."""
-    def ioctl_gwinsz(fd):
-        try:
-            rc = struct.unpack('hh', fcntl.ioctl(
-                fd, termios.TIOCGWINSZ, '1234'))
-        except BaseException:
-            return
-        return rc
-    rc = ioctl_gwinsz(0) or ioctl_gwinsz(1) or ioctl_gwinsz(2)
-    if not rc:
-        try:
-            fd = os.open(os.ctermid(), os.O_RDONLY)
-            rc = ioctl_gwinsz(fd)
-            os.close(fd)
-        except BaseException:
-            pass
-    if not rc:
-        rc = (os.environ.get('LINES', 25), os.environ.get('COLUMNS', 80))
+    if _platform != "win32":
+        def ioctl_gwinsz(fd):
+            try:
+                rc = struct.unpack('hh', fcntl.ioctl(
+                    fd, termios.TIOCGWINSZ, '1234'))
+            except BaseException:
+                return
+            return rc
+        rc = ioctl_gwinsz(0) or ioctl_gwinsz(1) or ioctl_gwinsz(2)
+        if not rc:
+            try:
+                fd = os.open(os.ctermid(), os.O_RDONLY)
+                rc = ioctl_gwinsz(fd)
+                os.close(fd)
+            except BaseException:
+                pass
+        if not rc:
+            rc = (os.environ.get('LINES', 25), os.environ.get('COLUMNS', 80))
 
-    return int(rc[0]), int(rc[1])
+        return int(rc[0]), int(rc[1])
+    else:
+        if sys.version_info[0] < 3:
+            raise RuntimeError("Terminal size not obtainable on Windows with a\
+Python version older than 3")
+        rc = (os.environ.get('LINES', 25), os.environ.get('COLUMNS', 80))
+        return int(rc[0]), int(rc[1])

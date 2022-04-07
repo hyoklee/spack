@@ -1,17 +1,24 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import os.path
 import re
+import sys
 
-from llnl.util.filesystem import touch, mkdirp
+import pytest
 
+from llnl.util.filesystem import mkdirp, touch
+
+import spack.cmd.license
 import spack.paths
 from spack.main import SpackCommand
 
 license = SpackCommand('license')
+
+pytestmark = pytest.mark.skipif(sys.platform == "win32",
+                                reason="does not run on windows")
 
 
 def test_list_files():
@@ -31,7 +38,7 @@ def test_verify(tmpdir):
     lgpl_header = source_dir.join('lgpl_header.py')
     with lgpl_header.open('w') as f:
         f.write("""\
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: LGPL-2.1-only
@@ -48,13 +55,13 @@ def test_verify(tmpdir):
     correct_header = source_dir.join('correct_header.py')
     with correct_header.open('w') as f:
         f.write("""\
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """)
 
-    out = license('verify', '--root', str(tmpdir), fail_on_error=False)
+    out = license('--root', str(tmpdir), 'verify', fail_on_error=False)
 
     assert str(no_header) in out
     assert str(lgpl_header) in out
@@ -66,3 +73,39 @@ def test_verify(tmpdir):
     assert re.search(r'files with old license header:\s*1', out)
 
     assert license.returncode == 1
+
+
+def test_update_copyright_year(tmpdir):
+    source_dir = tmpdir.join('lib', 'spack', 'spack')
+    mkdirp(str(source_dir))
+
+    years = list(range(2018, 2021))
+
+    for year in years:
+        outdated = source_dir.join('header_%d.py' % year)
+        with outdated.open('w') as f:
+            f.write("""\
+# Copyright 2013-%d Lawrence Livermore National Security, LLC and other
+# Spack Project Developers. See the top-level COPYRIGHT file for details.
+#
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+""" % year)
+
+    # add an old MIT license at top level
+    mit_file = os.path.join(spack.paths.prefix, "LICENSE-MIT")
+    test_mit_file = str(tmpdir.join("LICENSE-MIT"))
+    with open(mit_file) as real:
+        with open(test_mit_file, "w") as dummy:
+            old_copyright = re.sub(r"\d{4}-\d{4}", "2018-2019", real.read())
+            dummy.write(old_copyright)
+
+    license('--root', str(tmpdir), 'update-copyright-year')
+
+    for year in years:
+        outdated = source_dir.join('header_%d.py' % year)
+        first_line = outdated.open().read().split("\n")[0]
+        assert str(year) not in first_line
+        assert spack.cmd.license.strict_date in first_line
+
+    mit_date = spack.cmd.license.strict_date.replace("Copyright", "Copyright (c)")
+    assert mit_date in open(test_mit_file).read()

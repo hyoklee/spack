@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -20,6 +20,14 @@ class CmakeClient(CMakePackage):
     url       = 'https://www.example.com/cmake-client-1.0.tar.gz'
 
     version('1.0', '4cb3ff35b2472aae70f542116d616e63')
+
+    variant(
+        'multi', description='',
+        values=any_combination_of('up', 'right', 'back').with_default('up')
+    )
+    variant('single', description='', default='blue',
+            values=('blue', 'red', 'green'), multi=False)
+    variant('truthy', description='', default=True)
 
     callback_counter = 0
 
@@ -46,20 +54,20 @@ class CmakeClient(CMakePackage):
     def setup_build_environment(self, spack_env):
         spack_cc    # Ensure spack module-scope variable is avaiabl
         check(from_cmake == "from_cmake",
-              "setup_environment couldn't read global set by cmake.")
+              "setup_build_environment couldn't read global set by cmake.")
 
         check(self.spec['cmake'].link_arg == "test link arg",
               "link arg on dependency spec not readable from "
-              "setup_environment.")
+              "setup_build_environment.")
 
-    def setup_dependent_build_environment(self, spack_env, dspec):
+    def setup_dependent_build_environment(self, env, dependent_spec):
         spack_cc    # Ensure spack module-scope variable is avaiable
         check(from_cmake == "from_cmake",
-              "setup_dependent_environment couldn't read global set by cmake.")
+              "setup_dependent_build_environment couldn't read global set by cmake.")
 
         check(self.spec['cmake'].link_arg == "test link arg",
               "link arg on dependency spec not readable from "
-              "setup_dependent_environment.")
+              "setup_dependent_build_environment.")
 
     def setup_dependent_package(self, module, dspec):
         spack_cc    # Ensure spack module-scope variable is avaiable
@@ -86,6 +94,8 @@ class CmakeClient(CMakePackage):
 
         # check that which('cmake') returns the right one.
         cmake = which('cmake')
+        print(cmake)
+        print(cmake.exe)
         check(cmake.exe[0].startswith(spec['cmake'].prefix.bin),
               "Wrong cmake was in environment: %s" % cmake)
 

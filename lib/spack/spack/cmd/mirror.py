@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,7 +6,6 @@
 import sys
 
 import llnl.util.tty as tty
-from llnl.util.tty.colify import colify
 
 import spack.cmd
 import spack.cmd.common.arguments as arguments
@@ -17,9 +16,8 @@ import spack.mirror
 import spack.repo
 import spack.util.url as url_util
 import spack.util.web as web_util
-
-from spack.spec import Spec
 from spack.error import SpackError
+from spack.spec import Spec
 from spack.util.spack_yaml import syaml_dict
 
 description = "manage mirrors (source and binary)"
@@ -28,7 +26,7 @@ level = "long"
 
 
 def setup_parser(subparser):
-    arguments.add_common_arguments(subparser, ['no_checksum'])
+    arguments.add_common_arguments(subparser, ['no_checksum', 'deprecated'])
 
     sp = subparser.add_subparsers(
         metavar='SUBCOMMAND', dest='mirror_command')
@@ -45,7 +43,19 @@ def setup_parser(subparser):
              " (this requires significant time and space)")
     create_parser.add_argument(
         '-f', '--file', help="file with specs of packages to put in mirror")
+    create_parser.add_argument(
+        '--exclude-file',
+        help="specs which Spack should not try to add to a mirror"
+             " (listed in a file, one per line)")
+    create_parser.add_argument(
+        '--exclude-specs',
+        help="specs which Spack should not try to add to a mirror"
+             " (specified on command line)")
 
+    create_parser.add_argument(
+        '--skip-unstable-versions', action='store_true',
+        help="don't cache versions unless they identify a stable (unchanging)"
+             " source code")
     create_parser.add_argument(
         '-D', '--dependencies', action='store_true',
         help="also fetch all dependencies")
@@ -54,6 +64,19 @@ def setup_parser(subparser):
         help="the number of versions to fetch for each spec, choose 'all' to"
              " retrieve all versions of each package")
     arguments.add_common_arguments(create_parser, ['specs'])
+
+    # Destroy
+    destroy_parser = sp.add_parser('destroy', help=mirror_destroy.__doc__)
+
+    destroy_target = destroy_parser.add_mutually_exclusive_group(required=True)
+    destroy_target.add_argument('-m', '--mirror-name',
+                                metavar='mirror_name',
+                                type=str,
+                                help="find mirror to destroy by name")
+    destroy_target.add_argument('--mirror-url',
+                                metavar='mirror_url',
+                                type=str,
+                                help="find mirror to destroy by url")
 
     # used to construct scope arguments below
     scopes = spack.config.scopes()
@@ -69,7 +92,7 @@ def setup_parser(subparser):
         '--scope', choices=scopes, metavar=scopes_metavar,
         default=spack.config.default_modify_scope(),
         help="configuration scope to modify")
-
+    arguments.add_s3_connection_args(add_parser, False)
     # Remove
     remove_parser = sp.add_parser('remove', aliases=['rm'],
                                   help=mirror_remove.__doc__)
@@ -93,6 +116,7 @@ def setup_parser(subparser):
         '--scope', choices=scopes, metavar=scopes_metavar,
         default=spack.config.default_modify_scope(),
         help="configuration scope to modify")
+    arguments.add_s3_connection_args(set_url_parser, False)
 
     # List
     list_parser = sp.add_parser('list', help=mirror_list.__doc__)
@@ -105,56 +129,17 @@ def setup_parser(subparser):
 def mirror_add(args):
     """Add a mirror to Spack."""
     url = url_util.format(args.url)
-
-    mirrors = spack.config.get('mirrors', scope=args.scope)
-    if not mirrors:
-        mirrors = syaml_dict()
-
-    if args.name in mirrors:
-        tty.die("Mirror with name %s already exists." % args.name)
-
-    items = [(n, u) for n, u in mirrors.items()]
-    items.insert(0, (args.name, url))
-    mirrors = syaml_dict(items)
-    spack.config.set('mirrors', mirrors, scope=args.scope)
+    spack.mirror.add(args.name, url, args.scope, args)
 
 
 def mirror_remove(args):
     """Remove a mirror by name."""
-    name = args.name
-
-    mirrors = spack.config.get('mirrors', scope=args.scope)
-    if not mirrors:
-        mirrors = syaml_dict()
-
-    if name not in mirrors:
-        tty.die("No mirror with name %s" % name)
-
-    old_value = mirrors.pop(name)
-    spack.config.set('mirrors', mirrors, scope=args.scope)
-
-    debug_msg_url = "url %s"
-    debug_msg = ["Removed mirror %s with"]
-    values = [name]
-
-    try:
-        fetch_value = old_value['fetch']
-        push_value = old_value['push']
-
-        debug_msg.extend(("fetch", debug_msg_url, "and push", debug_msg_url))
-        values.extend((fetch_value, push_value))
-    except TypeError:
-        debug_msg.append(debug_msg_url)
-        values.append(old_value)
-
-    tty.debug(" ".join(debug_msg) % tuple(values))
-    tty.msg("Removed mirror %s." % name)
+    spack.mirror.remove(args.name, args.scope)
 
 
 def mirror_set_url(args):
     """Change the URL of a mirror."""
     url = url_util.format(args.url)
-
     mirrors = spack.config.get('mirrors', scope=args.scope)
     if not mirrors:
         mirrors = syaml_dict()
@@ -163,7 +148,15 @@ def mirror_set_url(args):
         tty.die("No mirror found with name %s." % args.name)
 
     entry = mirrors[args.name]
+    key_values = ["s3_access_key_id", "s3_access_token", "s3_profile"]
 
+    if any(value for value in key_values if value in args):
+        incoming_data = {"url": url,
+                         "access_pair": (args.s3_access_key_id,
+                                         args.s3_access_key_secret),
+                         "access_token": args.s3_access_token,
+                         "profile": args.s3_profile,
+                         "endpoint_url": args.s3_endpoint_url}
     try:
         fetch_url = entry['fetch']
         push_url = entry['push']
@@ -173,20 +166,28 @@ def mirror_set_url(args):
     changes_made = False
 
     if args.push:
-        changes_made = changes_made or push_url != url
-        push_url = url
+        if isinstance(push_url, dict):
+            changes_made = changes_made or push_url != incoming_data
+            push_url = incoming_data
+        else:
+            changes_made = changes_made or push_url != url
+            push_url = url
     else:
-        changes_made = (
-            changes_made or fetch_url != push_url or push_url != url)
-
-        fetch_url, push_url = url, url
+        if isinstance(push_url, dict):
+            changes_made = (changes_made or push_url != incoming_data
+                            or push_url != incoming_data)
+            fetch_url, push_url = incoming_data, incoming_data
+        else:
+            changes_made = changes_made or push_url != url
+            fetch_url, push_url = url, url
 
     items = [
         (
             (n, u)
             if n != args.name else (
                 (n, {"fetch": fetch_url, "push": push_url})
-                if fetch_url != push_url else (n, fetch_url)
+                if fetch_url != push_url else (n, {"fetch": fetch_url,
+                                                   "push": fetch_url})
             )
         )
         for n, u in mirrors.items()
@@ -197,10 +198,10 @@ def mirror_set_url(args):
 
     if changes_made:
         tty.msg(
-            "Changed%s url for mirror %s." %
+            "Changed%s url or connection information for mirror %s." %
             ((" (push)" if args.push else ""), args.name))
     else:
-        tty.msg("Url already set for mirror %s." % args.name)
+        tty.msg("No changes made to mirror %s." % args.name)
 
 
 def mirror_list(args):
@@ -229,9 +230,7 @@ def _read_specs_from_file(filename):
     return specs
 
 
-def mirror_create(args):
-    """Create a directory to be used as a spack mirror, and fill it with
-       package archives."""
+def _determine_specs_to_mirror(args):
     if args.specs and args.all:
         raise SpackError("Cannot specify specs on command line if you"
                          " chose to mirror all specs with '--all'")
@@ -261,6 +260,7 @@ def mirror_create(args):
                 tty.die("Cannot pass specs on the command line with --file.")
             specs = _read_specs_from_file(args.file)
 
+        env_specs = None
         if not specs:
             # If nothing is passed, use environment or all if no active env
             if not args.all:
@@ -268,14 +268,11 @@ def mirror_create(args):
                         "To mirror all packages, use the '--all' option"
                         " (this will require significant time and space).")
 
-            env = ev.get_env(args, 'mirror')
+            env = ev.active_environment()
             if env:
-                mirror_specs = env.specs_by_hash.values()
+                env_specs = env.all_specs()
             else:
                 specs = [Spec(n) for n in spack.repo.all_package_names()]
-                mirror_specs = spack.mirror.get_all_versions(specs)
-                mirror_specs.sort(
-                    key=lambda s: (s.name, s.version))
         else:
             # If the user asked for dependencies, traverse spec DAG get them.
             if args.dependencies:
@@ -294,11 +291,38 @@ def mirror_create(args):
                 msg = 'Skipping {0} as it is an external spec.'
                 tty.msg(msg.format(spec.cshort_spec))
 
+        if env_specs:
+            if args.versions_per_spec:
+                tty.warn("Ignoring '--versions-per-spec' for mirroring specs"
+                         " in environment.")
+            mirror_specs = env_specs
+        else:
             if num_versions == 'all':
                 mirror_specs = spack.mirror.get_all_versions(specs)
             else:
                 mirror_specs = spack.mirror.get_matching_versions(
                     specs, num_versions=num_versions)
+            mirror_specs.sort(
+                key=lambda s: (s.name, s.version))
+
+    exclude_specs = []
+    if args.exclude_file:
+        exclude_specs.extend(_read_specs_from_file(args.exclude_file))
+    if args.exclude_specs:
+        exclude_specs.extend(
+            spack.cmd.parse_specs(str(args.exclude_specs).split()))
+    if exclude_specs:
+        mirror_specs = list(
+            x for x in mirror_specs
+            if not any(x.satisfies(y, strict=True) for y in exclude_specs))
+
+    return mirror_specs
+
+
+def mirror_create(args):
+    """Create a directory to be used as a spack mirror, and fill it with
+       package archives."""
+    mirror_specs = _determine_specs_to_mirror(args)
 
     mirror = spack.mirror.Mirror(
         args.directory or spack.config.get('config:source_cache'))
@@ -308,7 +332,8 @@ def mirror_create(args):
     existed = web_util.url_exists(directory)
 
     # Actually do the work to create the mirror
-    present, mirrored, error = spack.mirror.create(directory, mirror_specs)
+    present, mirrored, error = spack.mirror.create(
+        directory, mirror_specs, args.skip_unstable_versions)
     p, m, e = len(present), len(mirrored), len(error)
 
     verb = "updated" if existed else "created"
@@ -320,12 +345,26 @@ def mirror_create(args):
         "  %-4d failed to fetch." % e)
     if error:
         tty.error("Failed downloads:")
-        colify(s.cformat("{name}{@version}") for s in error)
+        tty.colify(s.cformat("{name}{@version}") for s in error)
         sys.exit(1)
+
+
+def mirror_destroy(args):
+    """Given a url, recursively delete everything under it."""
+    mirror_url = None
+
+    if args.mirror_name:
+        result = spack.mirror.MirrorCollection().lookup(args.mirror_name)
+        mirror_url = result.push_url
+    elif args.mirror_url:
+        mirror_url = args.mirror_url
+
+    web_util.remove_url(mirror_url, recursive=True)
 
 
 def mirror(parser, args):
     action = {'create': mirror_create,
+              'destroy': mirror_destroy,
               'add': mirror_add,
               'remove': mirror_remove,
               'rm': mirror_remove,
@@ -334,5 +373,8 @@ def mirror(parser, args):
 
     if args.no_checksum:
         spack.config.set('config:checksum', False, scope='command_line')
+
+    if args.deprecated:
+        spack.config.set('config:deprecated', True, scope='command_line')
 
     action[args.mirror_command](args)

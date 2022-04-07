@@ -1,22 +1,28 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import filecmp
 import os
-import pytest
+import sys
 
-import spack.repo
-import spack.mirror
-import spack.util.executable
-from spack.spec import Spec
-from spack.stage import Stage
-from spack.util.executable import which
+import pytest
 
 from llnl.util.filesystem import resolve_link_target_relative_to_the_link
 
-pytestmark = pytest.mark.usefixtures('config', 'mutable_mock_repo')
+import spack.mirror
+import spack.repo
+import spack.util.executable
+import spack.util.spack_json as sjson
+from spack.spec import Spec
+from spack.stage import Stage
+from spack.util.executable import which
+from spack.util.spack_yaml import SpackYAMLError
+
+pytestmark = [pytest.mark.skipif(sys.platform == "win32",
+                                 reason="does not run on windows"),
+              pytest.mark.usefixtures('mutable_config', 'mutable_mock_repo')]
 
 # paths in repos that shouldn't be in the mirror tarballs.
 exclude = ['.hg', '.git', '.svn']
@@ -52,52 +58,52 @@ def check_mirror():
         mirror_root = os.path.join(stage.path, 'test-mirror')
         # register mirror with spack config
         mirrors = {'spack-mirror-test': 'file://' + mirror_root}
-        spack.config.set('mirrors', mirrors)
-        with spack.config.override('config:checksum', False):
-            specs = [Spec(x).concretized() for x in repos]
-            spack.mirror.create(mirror_root, specs)
-
-        # Stage directory exists
-        assert os.path.isdir(mirror_root)
-
-        for spec in specs:
-            fetcher = spec.package.fetcher[0]
-            per_package_ref = os.path.join(
-                spec.name, '-'.join([spec.name, str(spec.version)]))
-            mirror_paths = spack.mirror.mirror_archive_paths(
-                fetcher,
-                per_package_ref)
-            expected_path = os.path.join(
-                mirror_root, mirror_paths.storage_path)
-            assert os.path.exists(expected_path)
-
-        # Now try to fetch each package.
-        for name, mock_repo in repos.items():
-            spec = Spec(name).concretized()
-            pkg = spec.package
-
+        with spack.config.override('mirrors', mirrors):
             with spack.config.override('config:checksum', False):
-                with pkg.stage:
-                    pkg.do_stage(mirror_only=True)
+                specs = [Spec(x).concretized() for x in repos]
+                spack.mirror.create(mirror_root, specs)
 
-                    # Compare the original repo with the expanded archive
-                    original_path = mock_repo.path
-                    if 'svn' in name:
-                        # have to check out the svn repo to compare.
-                        original_path = os.path.join(
-                            mock_repo.path, 'checked_out')
+            # Stage directory exists
+            assert os.path.isdir(mirror_root)
 
-                        svn = which('svn', required=True)
-                        svn('checkout', mock_repo.url, original_path)
+            for spec in specs:
+                fetcher = spec.package.fetcher[0]
+                per_package_ref = os.path.join(
+                    spec.name, '-'.join([spec.name, str(spec.version)]))
+                mirror_paths = spack.mirror.mirror_archive_paths(
+                    fetcher,
+                    per_package_ref)
+                expected_path = os.path.join(
+                    mirror_root, mirror_paths.storage_path)
+                assert os.path.exists(expected_path)
 
-                    dcmp = filecmp.dircmp(
-                        original_path, pkg.stage.source_path)
+            # Now try to fetch each package.
+            for name, mock_repo in repos.items():
+                spec = Spec(name).concretized()
+                pkg = spec.package
 
-                    # make sure there are no new files in the expanded
-                    # tarball
-                    assert not dcmp.right_only
-                    # and that all original files are present.
-                    assert all(l in exclude for l in dcmp.left_only)
+                with spack.config.override('config:checksum', False):
+                    with pkg.stage:
+                        pkg.do_stage(mirror_only=True)
+
+                        # Compare the original repo with the expanded archive
+                        original_path = mock_repo.path
+                        if 'svn' in name:
+                            # have to check out the svn repo to compare.
+                            original_path = os.path.join(
+                                mock_repo.path, 'checked_out')
+
+                            svn = which('svn', required=True)
+                            svn('checkout', mock_repo.url, original_path)
+
+                        dcmp = filecmp.dircmp(
+                            original_path, pkg.stage.source_path)
+
+                        # make sure there are no new files in the expanded
+                        # tarball
+                        assert not dcmp.right_only
+                        # and that all original files are present.
+                        assert all(left in exclude for left in dcmp.left_only)
 
 
 def test_url_mirror(mock_archive):
@@ -146,6 +152,100 @@ def test_all_mirror(
     set_up_package('trivial-install-test-package', mock_archive, 'url')
     check_mirror()
     repos.clear()
+
+
+@pytest.mark.parametrize(
+    "mirror",
+    [
+        spack.mirror.Mirror(
+            'https://example.com/fetch',
+            'https://example.com/push',
+        ),
+    ],
+)
+def test_roundtrip_mirror(mirror):
+    mirror_yaml = mirror.to_yaml()
+    assert spack.mirror.Mirror.from_yaml(mirror_yaml) == mirror
+    mirror_json = mirror.to_json()
+    assert spack.mirror.Mirror.from_json(mirror_json) == mirror
+
+
+@pytest.mark.parametrize(
+    "invalid_yaml",
+    [
+        "playing_playlist: {{ action }} playlist {{ playlist_name }}"
+    ]
+)
+def test_invalid_yaml_mirror(invalid_yaml):
+    with pytest.raises(SpackYAMLError) as e:
+        spack.mirror.Mirror.from_yaml(invalid_yaml)
+    exc_msg = str(e.value)
+    assert exc_msg.startswith("error parsing YAML mirror:")
+    assert invalid_yaml in exc_msg
+
+
+@pytest.mark.parametrize(
+    "invalid_json, error_message",
+    [
+        ("{13:", "Expecting property name")
+    ]
+)
+def test_invalid_json_mirror(invalid_json, error_message):
+    with pytest.raises(sjson.SpackJSONError) as e:
+        spack.mirror.Mirror.from_json(invalid_json)
+    exc_msg = str(e.value)
+    assert exc_msg.startswith("error parsing JSON mirror:")
+    assert error_message in exc_msg
+
+
+@pytest.mark.parametrize(
+    "mirror_collection",
+    [
+        spack.mirror.MirrorCollection(
+            mirrors={
+                'example-mirror': spack.mirror.Mirror(
+                    'https://example.com/fetch',
+                    'https://example.com/push',
+                ).to_dict(),
+            },
+        ),
+    ],
+)
+def test_roundtrip_mirror_collection(mirror_collection):
+    mirror_collection_yaml = mirror_collection.to_yaml()
+    assert (spack.mirror.MirrorCollection.from_yaml(mirror_collection_yaml) ==
+            mirror_collection)
+    mirror_collection_json = mirror_collection.to_json()
+    assert (spack.mirror.MirrorCollection.from_json(mirror_collection_json) ==
+            mirror_collection)
+
+
+@pytest.mark.parametrize(
+    "invalid_yaml",
+    [
+        "playing_playlist: {{ action }} playlist {{ playlist_name }}"
+    ]
+)
+def test_invalid_yaml_mirror_collection(invalid_yaml):
+    with pytest.raises(SpackYAMLError) as e:
+        spack.mirror.MirrorCollection.from_yaml(invalid_yaml)
+    exc_msg = str(e.value)
+    assert exc_msg.startswith("error parsing YAML mirror collection:")
+    assert invalid_yaml in exc_msg
+
+
+@pytest.mark.parametrize(
+    "invalid_json, error_message",
+    [
+        ("{13:", "Expecting property name")
+    ]
+)
+def test_invalid_json_mirror_collection(invalid_json, error_message):
+    with pytest.raises(sjson.SpackJSONError) as e:
+        spack.mirror.MirrorCollection.from_json(invalid_json)
+    exc_msg = str(e.value)
+    assert exc_msg.startswith("error parsing JSON mirror collection:")
+    assert error_message in exc_msg
 
 
 def test_mirror_archive_paths_no_version(mock_packages, config, mock_archive):
@@ -213,7 +313,7 @@ def test_mirror_cache_symlinks(tmpdir):
     """
     cosmetic_path = 'zlib/zlib-1.2.11.tar.gz'
     global_path = '_source-cache/archive/c3/c3e5.tar.gz'
-    cache = spack.caches.MirrorCache(str(tmpdir))
+    cache = spack.caches.MirrorCache(str(tmpdir), False)
     reference = spack.mirror.MirrorReference(cosmetic_path, global_path)
 
     cache.store(MockFetcher(), reference.storage_path)

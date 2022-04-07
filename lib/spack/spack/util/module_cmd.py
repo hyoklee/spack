@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -7,47 +7,54 @@
 This module contains routines related to the module command for accessing and
 parsing environment modules.
 """
-import subprocess
 import os
-import sys
-import json
 import re
+import subprocess
+import sys
 
 import llnl.util.tty as tty
 
 # This list is not exhaustive. Currently we only use load and unload
 # If we need another option that changes the environment, add it here.
 module_change_commands = ['load', 'swap', 'unload', 'purge', 'use', 'unuse']
-py_cmd = "'import os;import json;print(json.dumps(dict(os.environ)))'"
 
-# This is just to enable testing. I hate it but we can't find a better way
-_test_mode = False
+# This awk script is a posix alternative to `env -0`
+awk_cmd = (r"""awk 'BEGIN{for(name in ENVIRON)"""
+           r"""printf("%s=%s%c", name, ENVIRON[name], 0)}'""")
 
 
-def module(*args):
-    module_cmd = 'module ' + ' '.join(args) + ' 2>&1'
-    if _test_mode:
-        tty.warn('module function operating in test mode')
-        module_cmd = ". %s 2>&1" % args[1]
+def module(*args, **kwargs):
+    module_cmd = kwargs.get('module_template', 'module ' + ' '.join(args))
+
     if args[0] in module_change_commands:
-        # Do the module manipulation, then output the environment in JSON
-        # and read the JSON back in the parent process to update os.environ
-        module_cmd += ' >/dev/null;' + sys.executable + ' -c %s' % py_cmd
-        module_p  = subprocess.Popen(module_cmd,
-                                     stdout=subprocess.PIPE,
-                                     stderr=subprocess.STDOUT,
-                                     shell=True,
-                                     executable="/bin/bash")
+        # Suppress module output
+        module_cmd += r' >/dev/null 2>&1; ' + awk_cmd
+        module_p = subprocess.Popen(
+            module_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True,
+            executable="/bin/bash")
 
-        # Cray modules spit out warnings that we cannot supress.
-        # This hack skips to the last output (the environment)
-        env_output = str(module_p.communicate()[0].decode())
-        env = env_output.strip().split('\n')[-1]
+        # In Python 3, keys and values of `environ` are byte strings.
+        environ = {}
+        output = module_p.communicate()[0]
+
+        # Loop over each environment variable key=value byte string
+        for entry in output.strip(b'\0').split(b'\0'):
+            # Split variable name and value
+            parts = entry.split(b'=', 1)
+            if len(parts) != 2:
+                continue
+            environ[parts[0]] = parts[1]
 
         # Update os.environ with new dict
-        env_dict = json.loads(env)
         os.environ.clear()
-        os.environ.update(env_dict)
+        if sys.version_info >= (3, 2):
+            os.environb.update(environ)  # novermin
+        else:
+            os.environ.update(environ)
+
     else:
         # Simply execute commands that don't change state and return output
         module_p = subprocess.Popen(module_cmd,
@@ -64,6 +71,7 @@ def load_module(mod):
     load that module. It then loads the provided module. Depends on the
     modulecmd implementation of modules used in cray and lmod.
     """
+    tty.debug("module_cmd.load_module: {0}".format(mod))
     # Read the module and remove any conflicting modules
     # We do this without checking that they are already installed
     # for ease of programming because unloading a module that is not
@@ -92,24 +100,46 @@ def get_path_args_from_module_line(line):
         words_and_symbols = line.split(lua_quote)
         path_arg = words_and_symbols[-2]
     else:
-        path_arg = line.split()[2]
+        # The path arg is the 3rd "word" of the line in a TCL module
+        # OPERATION VAR_NAME PATH_ARG
+        words = line.split()
+        if len(words) > 2:
+            path_arg = words[2]
+        else:
+            return []
 
     paths = path_arg.split(':')
     return paths
 
 
-def get_path_from_module(mod):
-    """Inspects a TCL module for entries that indicate the absolute path
-    at which the library supported by said module can be found.
-    """
-    # Read the module
-    text = module('show', mod).split('\n')
+def path_from_modules(modules):
+    """Inspect a list of TCL modules for entries that indicate the absolute
+    path at which the library supported by said module can be found.
 
-    p = get_path_from_module_contents(text, mod)
-    if p and not os.path.exists(p):
-        tty.warn("Extracted path from module does not exist:"
-                 "\n\tExtracted path: " + p)
-    return p
+    Args:
+        modules (list): module files to be loaded to get an external package
+
+    Returns:
+        Guess of the prefix path where the package
+    """
+    assert isinstance(modules, list), 'the "modules" argument must be a list'
+
+    best_choice = None
+    for module_name in modules:
+        # Read the current module and return a candidate path
+        text = module('show', module_name).split('\n')
+        candidate_path = get_path_from_module_contents(text, module_name)
+
+        if candidate_path and not os.path.exists(candidate_path):
+            msg = ("Extracted path from module does not exist "
+                   "[module={0}, path={1}]")
+            tty.warn(msg.format(module_name, candidate_path))
+
+        # If anything is found, then it's the best choice. This means
+        # that we give preference to the last module to be loaded
+        # for packages requiring to load multiple modules in sequence
+        best_choice = candidate_path or best_choice
+    return best_choice
 
 
 def get_path_from_module_contents(text, module_name):
@@ -142,9 +172,13 @@ def get_path_from_module_contents(text, module_name):
     def match_flag_and_strip(line, flag, strip=[]):
         flag_idx = line.find(flag)
         if flag_idx >= 0:
-            end = line.find(' ', flag_idx)
-            if end >= 0:
-                path = line[flag_idx + len(flag):end]
+            # Search for the first occurence of any separator marking the end of
+            # the path.
+            separators = (' ', '"', "'")
+            occurrences = [line.find(s, flag_idx) for s in separators]
+            indices = [idx for idx in occurrences if idx >= 0]
+            if indices:
+                path = line[flag_idx + len(flag):min(indices)]
             else:
                 path = line[flag_idx + len(flag):]
             path = strip_path(path, strip)

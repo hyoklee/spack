@@ -1,18 +1,24 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-import pytest
 import os
-import spack
+import sys
 
+import pytest
+
+import spack
+import spack.util.module_cmd
 from spack.util.module_cmd import (
-    module,
-    get_path_from_module,
     get_path_args_from_module_line,
-    get_path_from_module_contents
+    get_path_from_module_contents,
+    module,
+    path_from_modules,
 )
+
+pytestmark = pytest.mark.skipif(sys.platform == 'win32',
+                                reason="Tests fail on Windows")
 
 test_module_lines = ['prepend-path LD_LIBRARY_PATH /path/to/lib',
                      'setenv MOD_DIR /path/to',
@@ -21,57 +27,37 @@ test_module_lines = ['prepend-path LD_LIBRARY_PATH /path/to/lib',
                      'prepend-path PATH /path/to/bin']
 
 
-@pytest.fixture
-def module_function_test_mode():
-    old_mode = spack.util.module_cmd._test_mode
-    spack.util.module_cmd._test_mode = True
-
-    yield
-
-    spack.util.module_cmd._test_mode = old_mode
-
-
-@pytest.fixture
-def save_module_func():
-    old_func = spack.util.module_cmd.module
-
-    yield
-
-    spack.util.module_cmd.module = old_func
-
-
-def test_module_function_change_env(tmpdir, working_env,
-                                    module_function_test_mode):
+def test_module_function_change_env(tmpdir, working_env):
     src_file = str(tmpdir.join('src_me'))
     with open(src_file, 'w') as f:
         f.write('export TEST_MODULE_ENV_VAR=TEST_SUCCESS\n')
 
     os.environ['NOT_AFFECTED'] = "NOT_AFFECTED"
-    module('load', src_file)
+    module('load', src_file, module_template='. {0} 2>&1'.format(src_file))
 
     assert os.environ['TEST_MODULE_ENV_VAR'] == 'TEST_SUCCESS'
     assert os.environ['NOT_AFFECTED'] == "NOT_AFFECTED"
 
 
-def test_module_function_no_change(tmpdir, module_function_test_mode):
+def test_module_function_no_change(tmpdir):
     src_file = str(tmpdir.join('src_me'))
     with open(src_file, 'w') as f:
         f.write('echo TEST_MODULE_FUNCTION_PRINT')
 
     old_env = os.environ.copy()
-    text = module('show', src_file)
+    text = module('show', src_file, module_template='. {0} 2>&1'.format(src_file))
 
     assert text == 'TEST_MODULE_FUNCTION_PRINT\n'
     assert os.environ == old_env
 
 
-def test_get_path_from_module_faked(save_module_func):
+def test_get_path_from_module_faked(monkeypatch):
     for line in test_module_lines:
         def fake_module(*args):
             return line
-        spack.util.module_cmd.module = fake_module
+        monkeypatch.setattr(spack.util.module_cmd, 'module', fake_module)
 
-        path = get_path_from_module('mod')
+        path = path_from_modules(['mod'])
         assert path == '/path/to'
 
 
@@ -132,10 +118,17 @@ def test_get_argument_from_module_line():
     bad_lines = ['prepend_path(PATH,/lib/path)',
                  'prepend-path (LD_LIBRARY_PATH) /lib/path']
 
-    assert all(get_path_args_from_module_line(l) == ['/lib/path']
-               for l in simple_lines)
-    assert all(get_path_args_from_module_line(l) == ['/lib/path', '/pkg/path']
-               for l in complex_lines)
+    assert all(get_path_args_from_module_line(x) == ['/lib/path']
+               for x in simple_lines)
+    assert all(get_path_args_from_module_line(x) == ['/lib/path', '/pkg/path']
+               for x in complex_lines)
     for bl in bad_lines:
         with pytest.raises(ValueError):
             get_path_args_from_module_line(bl)
+
+
+# lmod is entirely unsupported on Windows
+def test_lmod_quote_parsing():
+    lines = ['setenv("SOME_PARTICULAR_DIR","-L/opt/cray/pe/mpich/8.1.4/gtl/lib")']
+    result = get_path_from_module_contents(lines, 'some-module')
+    assert '/opt/cray/pe/mpich/8.1.4/gtl' == result

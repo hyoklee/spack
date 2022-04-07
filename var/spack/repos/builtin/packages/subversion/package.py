@@ -1,7 +1,9 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import re
 
 from spack import *
 
@@ -10,8 +12,16 @@ class Subversion(AutotoolsPackage):
     """Apache Subversion - an open source version control system."""
 
     homepage = 'https://subversion.apache.org/'
-    url      = 'https://archive.apache.org/dist/subversion/subversion-1.12.2.tar.gz'
+    urls = [
+        'https://archive.apache.org/dist/subversion/subversion-1.12.2.tar.gz',
+        'https://downloads.apache.org/subversion/subversion-1.13.0.tar.gz'
+    ]
 
+    tags = ['build-tools']
+
+    version('1.14.1', sha256='dee2796abaa1f5351e6cc2a60b1917beb8238af548b20d3e1ec22760ab2f0cad')
+    version('1.14.0', sha256='ef3d1147535e41874c304fb5b9ea32745fbf5d7faecf2ce21d4115b567e937d0')
+    version('1.13.0', sha256='daad440c03b8a86fcca804ea82217bb1902cfcae1b7d28c624143c58dcb96931')
     version('1.12.2', sha256='f4927d6603d96c5ddabebbafe9a0f6833c18a891ff0ce1ea6ffd186ce9bc21f3')
     version('1.9.7',  sha256='c72a209c883e20245f14c4e644803f50ae83ae24652e385ff5e82300a0d06c3c')
     version('1.9.6',  sha256='a400cbc46d05cb29f2d7806405bb539e9e045b24013b0f12f8f82688513321a7')
@@ -36,10 +46,9 @@ class Subversion(AutotoolsPackage):
     depends_on('swig@1.3.24:3.0.0', when='+perl')
     depends_on('perl-termreadkey', when='+perl')
 
-    # Installation has race cases.
-    parallel = False
+    executables = [r'^svn$']
 
-    # http://www.linuxfromscratch.org/blfs/view/svn/general/subversion.html
+    # https://www.linuxfromscratch.org/blfs/view/svn/general/subversion.html
     def configure_args(self):
         spec = self.spec
         args = [
@@ -93,15 +102,21 @@ class Subversion(AutotoolsPackage):
                 perl = spec['perl'].command
                 perl('Makefile.PL', 'INSTALL_BASE={0}'.format(prefix))
 
-    def test(self):
+    def check(self):
         make('check')
         if '+perl' in self.spec:
             make('check-swig-pl')
 
     def install(self, spec, prefix):
-        make('install')
+        make('install', parallel=False)
         if '+perl' in spec:
             make('install-swig-pl-lib')
             with working_dir(join_path(
                     'subversion', 'bindings', 'swig', 'perl', 'native')):
                 make('install')
+
+    @classmethod
+    def determine_version(cls, exe):
+        output = Executable(exe)('--version', output=str, error=str)
+        match = re.search(r'^svn, version\s+([\d\.]+)', output)
+        return match.group(1) if match else None

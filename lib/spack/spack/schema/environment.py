@@ -1,4 +1,4 @@
-# Copyright 2013-2019 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -38,11 +38,9 @@ def parse(config_obj):
         config_obj: a configuration dictionary conforming to the
             schema definition for environment modifications
     """
+    from llnl.util.compat import Sequence
+
     import spack.util.environment as ev
-    try:
-        from collections import Sequence  # novm
-    except ImportError:
-        from collections.abc import Sequence  # novm
 
     env = ev.EnvironmentModifications()
     for command, variable in config_obj.items():

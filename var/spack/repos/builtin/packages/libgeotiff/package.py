@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,10 +13,11 @@ class Libgeotiff(AutotoolsPackage):
     """
 
     homepage = "https://trac.osgeo.org/geotiff/"
-    url      = "https://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.5.1.tar.gz"
+    url      = "https://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.6.0.tar.gz"
 
     maintainers = ['adamjstewart']
 
+    version('1.6.0', sha256='9311017e5284cffb86f2c7b7a9df1fb5ebcdc61c30468fb2e6bca36e4272ebca')
     version('1.5.1', sha256='f9e99733c170d11052f562bcd2c7cb4de53ed405f7acdde4f16195cd3ead612c')
     version('1.5.0', sha256='1c0bef329c60f770ed128e8b273945100f1a4b5abd161ac61e93bc947b0624dd')
     version('1.4.3', sha256='b8510d9b968b5ee899282cdd5bef13fd02d5a4c19f664553f81e31127bc47265')
@@ -35,11 +36,11 @@ class Libgeotiff(AutotoolsPackage):
 
     # Patches required to fix rounding issues in unit tests
     # https://github.com/OSGeo/libgeotiff/issues/16
-    patch('https://github.com/OSGeo/libgeotiff/commit/7cb9b68ea72fb2a6023bb98796fd3ba6dc7b64a1.patch',
-          sha256='9485efc0a62a02207d34ac0c4d22e421c975b6ce85397c5e557c0105a232aaa3',
+    patch('https://github.com/OSGeo/libgeotiff/commit/7cb9b68ea72fb2a6023bb98796fd3ba6dc7b64a1.patch?full_index=1',
+          sha256='bae1441ba8cd1d4e94b8d6a080db64b768dd537faa7e2fb8c04133f68e71d304',
           level=2, when='@1.5.0:1.5.1')
-    patch('https://github.com/OSGeo/libgeotiff/commit/4b41ca6ce332f0c21504c2da3da850275d9da5ae.patch',
-          sha256='e0d45d3c34bf92df2d1d140957f110dc84759420e68a97e1e3d6ab90c81777d8',
+    patch('https://github.com/OSGeo/libgeotiff/commit/4b41ca6ce332f0c21504c2da3da850275d9da5ae.patch?full_index=1',
+          sha256='b368cdf5755f2ddf69d974bf86691440dcc861c41d86280780626f5a31f33b13',
           level=2, when='@1.5.0:1.5.1')
     # Patch required to fix absolute path issue in unit tests
     # https://github.com/OSGeo/libgeotiff/issues/16

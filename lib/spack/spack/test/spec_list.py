@@ -1,10 +1,13 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import itertools
-from spack.spec_list import SpecList
+
+import pytest
+
 from spack.spec import Spec
+from spack.spec_list import SpecList
 
 
 class TestSpecList(object):
@@ -42,24 +45,34 @@ class TestSpecList(object):
         assert speclist.specs_as_constraints == self.default_constraints
         assert speclist.specs == self.default_specs
 
-    def test_spec_list_constraint_ordering(self):
-        specs = [{'matrix': [
+    @pytest.mark.regression('28749')
+    @pytest.mark.parametrize('specs,expected', [
+        # Constraints are ordered randomly
+        ([{'matrix': [
             ['^zmpi'],
             ['%gcc@4.5.0'],
             ['hypre', 'libelf'],
             ['~shared'],
             ['cflags=-O3', 'cflags="-g -O0"'],
             ['^foo']
-        ]}]
-
+        ]}], [
+            'hypre cflags=-O3 ~shared %gcc@4.5.0 ^foo ^zmpi',
+            'hypre cflags="-g -O0" ~shared %gcc@4.5.0 ^foo ^zmpi',
+            'libelf cflags=-O3 ~shared %gcc@4.5.0 ^foo ^zmpi',
+            'libelf cflags="-g -O0" ~shared %gcc@4.5.0 ^foo ^zmpi',
+        ]),
+        # A constraint affects both the root and a dependency
+        ([{'matrix': [
+            ['gromacs'],
+            ['%gcc'],
+            ['+plumed ^plumed%gcc']
+        ]}], [
+            'gromacs+plumed%gcc ^plumed%gcc'
+        ])
+    ])
+    def test_spec_list_constraint_ordering(self, specs, expected):
         speclist = SpecList('specs', specs)
-
-        expected_specs = [
-            Spec('hypre cflags=-O3 ~shared %gcc@4.5.0 ^foo ^zmpi'),
-            Spec('hypre cflags="-g -O0" ~shared %gcc@4.5.0 ^foo ^zmpi'),
-            Spec('libelf cflags=-O3 ~shared %gcc@4.5.0 ^foo ^zmpi'),
-            Spec('libelf cflags="-g -O0" ~shared %gcc@4.5.0 ^foo ^zmpi'),
-        ]
+        expected_specs = [Spec(x) for x in expected]
         assert speclist.specs == expected_specs
 
     def test_spec_list_add(self):
@@ -156,3 +169,26 @@ class TestSpecList(object):
                                                 ['+shared', '~shared'])
         expected = [Spec(' '.join(combo)) for combo in expected_components]
         assert set(speclist.specs) == set(expected)
+
+    @pytest.mark.regression('16897')
+    def test_spec_list_recursion_specs_as_constraints(self):
+        input = ['mpileaks', '$mpis',
+                 {'matrix': [['hypre'], ['$%gccs', '$%clangs']]},
+                 'libelf']
+
+        reference = {'gccs': SpecList('gccs', ['gcc@4.5.0']),
+                     'clangs': SpecList('clangs', ['clang@3.3']),
+                     'mpis': SpecList('mpis', ['zmpi@1.0', 'mpich@3.0'])}
+
+        speclist = SpecList('specs', input, reference)
+
+        assert speclist.specs_as_yaml_list == self.default_expansion
+        assert speclist.specs_as_constraints == self.default_constraints
+        assert speclist.specs == self.default_specs
+
+    def test_spec_list_matrix_exclude(self, mock_packages):
+        # Test on non-boolean variants for regression for #16841
+        matrix = [{'matrix': [['multivalue-variant'], ['foo=bar', 'foo=baz']],
+                   'exclude': ['foo=bar']}]
+        speclist = SpecList('specs', matrix)
+        assert len(speclist.specs) == 1
