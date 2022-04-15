@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,16 +23,16 @@ class Hdf5Cmake(CMakePackage):
     maintainers = ['lrknox', 'hyoklee']
 
     # Forked versions for VOLs
-    version('hpc-io.develop', 
+    version('hpc-io.develop',
             branch='develop',
             git='https://github.com/hpc-io/hdf5.git')
-    version('hyoklee.OESS-126', branch='OESS-126', 
+    version('hyoklee.OESS-126', branch='OESS-126',
             git='https://github.com/hyoklee/hdf5.git')
-    version('hyoklee.develop', branch='develop', 
+    version('hyoklee.develop', branch='develop',
             git='https://github.com/hyoklee/hdf5.git')
 
     # A forked version for GPUDirect Storage VFD
-    version('jhendersonHDF.H5FD_dynamic', branch='H5FD_dynamic', 
+    version('jhendersonHDF.H5FD_dynamic', branch='H5FD_dynamic',
             git="https://github.com/jhendersonHDF/hdf5.git")
 
     # Official HDF5 GitHub repository branches
@@ -90,9 +90,9 @@ class Hdf5Cmake(CMakePackage):
     # Build HDF5 with API compatibility.
     variant('api', default='none', description='Choose api compatibility',
             values=('none', 'v114', 'v112', 'v110', 'v18', 'v16'), multi=False)
-    
+
     variant('vfd-gds', default=False, description='Enable GPUDirect Storage VFD')
-    
+
     # Build filter plugins.
     variant('blosc', default=True, description='Enable blosc support')
     variant('bshuf', default=True, description='Enable bshuf support')
@@ -108,7 +108,6 @@ class Hdf5Cmake(CMakePackage):
     variant('pv', default=False, description='Enable pass-through ext. VOL')
     variant('av', default=False, description='Enable async VOL')
     variant('cv', default=False, description='Enable cache VOL')
-
 
     conflicts('api=v114', when='@1.6:1.12.99', msg='v114 is not compatible with this release')
     conflicts('api=v114', when='@:develop-1.12.99', msg='v114 is not compatible with this release')
@@ -286,11 +285,11 @@ class Hdf5Cmake(CMakePackage):
     def cmake_use_cacheinit(self, args):
         # The following will not work.
         # args.append('-C /scr/hyoklee/src/hdf5-byrn/config/cmake/cacheinit.cmake')
-        # Instead, split the arguments like the following 
+        # Instead, split the arguments like the following
         args.append('-C')
         # Use full path instead of 'config/cmake/cacheinit.cmake'.
         # E.g., args.append('/scr/hyoklee/src/hdf5/config/cmake/cacheinit.cmake')
-        cf = self.build_directory+'/../spack-src/config/cmake/cacheinit.cmake'
+        cf = self.build_directory + '/../spack-src/config/cmake/cacheinit.cmake'
         args.append(cf)
         args.append('-DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=ON')
         args.append('-DPLUGIN_GIT_URL:STRING=https://github.com/hyoklee/hdf5_plugins.git')
@@ -340,7 +339,6 @@ class Hdf5Cmake(CMakePackage):
                     self.spec['szip'].prefix.lib))
         else:
             args.append('-DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF')
-
 
         # Build plugin filters.
         if '+vfd-gds' not in self.spec:
@@ -427,11 +425,10 @@ class Hdf5Cmake(CMakePackage):
 
         args.append(self.define_from_variant('HDF5_BUILD_TOOLS', 'tools'))
 
-
-        #if self.run_tests:
-        #    args.append('-DBUILD_TESTING=ON')
-        #else:
-        #   args.append('-DBUILD_TESTING=OFF')
+        # if self.run_tests:
+        #     args.append('-DBUILD_TESTING=ON')
+        # else:
+        #    args.append('-DBUILD_TESTING=OFF')
 
         if self.spec.variants['api'].value != 'none':
             args.append(
@@ -445,6 +442,7 @@ class Hdf5Cmake(CMakePackage):
     def test(self):
         # https://spack.readthedocs.io/en/latest/build_systems/custompackage.html
         make('test')
+
     def check_install(self):
         # Build and run a small program to test the installed HDF5 library
         spec = self.spec
