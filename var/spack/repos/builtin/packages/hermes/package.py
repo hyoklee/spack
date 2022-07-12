@@ -3,7 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
+from spack.package import *
+
 
 
 class Hermes(CMakePackage):
@@ -13,8 +14,8 @@ class Hermes(CMakePackage):
     """
 
     homepage = "http://www.cs.iit.edu/~scs/assets/projects/Hermes/Hermes.html"
-    # git = "https://github.com/HDFGroup/hermes.git"
-    git = "https://github.com/hyoklee/hermes.git"
+    git = "https://github.com/HDFGroup/hermes.git"
+
     maintainers = ['hyoklee']
 
     version('master', branch='master')
@@ -24,7 +25,6 @@ class Hermes(CMakePackage):
 
     depends_on('mochi-thallium~cereal@0.8:')
     depends_on('catch2@2.13:')
-    # depends_on('or-tools')
     depends_on('glpk')
     depends_on('glog@0.4.0:')
     depends_on('mpi')
@@ -32,7 +32,6 @@ class Hermes(CMakePackage):
 
     def cmake_args(self):
         args = [
-            self.define('CMAKE_INSTALL_PREFIX', self.prefix),
             self.define('HERMES_RPC_THALLIUM', True),
             self.define('HERMES_INSTALL_TESTS', True),
             self.define('BUILD_TESTING', True),

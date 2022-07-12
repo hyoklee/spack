@@ -4,6 +4,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
+from spack.package import *
+
+
 class OrTools(CMakePackage):
     """This project hosts operations research tools developed at
     Google and made available as open source under the Apache 2.0
@@ -16,7 +19,6 @@ class OrTools(CMakePackage):
     version('7.8', sha256='d93a9502b18af51902abd130ff5f23768fcf47e266e6d1f34b3586387aa2de68')
     variant('coin', default=False, description='Enable COIN-OR solvers.')
     depends_on('cmake@3.14:', type='build')
-    depends_on('protobuf@3.12.2:')
     depends_on('gflags@2.2.2:')
     depends_on('glog@0.4.0:')
     depends_on('protobuf@3.12.2:')
