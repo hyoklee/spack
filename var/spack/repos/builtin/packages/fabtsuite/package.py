@@ -37,6 +37,5 @@ class Fabtsuite(CMakePackage):
 
     def cmake_args(self):
         spec = self.spec
-        # args = [self.define('CMAKE_INSTALL_PREFIX', '.')]
-        args = []
+        args = [self.define('CMAKE_INSTALL_PREFIX', '.')]
         return args
