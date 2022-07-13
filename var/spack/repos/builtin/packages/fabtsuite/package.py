@@ -19,7 +19,6 @@
 #
 # See the Spack documentation for more information on packaging.
 # ----------------------------------------------------------------------------
-
 from spack.package import *
 
 
@@ -35,7 +34,7 @@ class Fabtsuite(CMakePackage):
 
     depends_on('libfabric')
 
-    def cmake_args(self):
-        spec = self.spec
-        args = [self.define('CMAKE_INSTALL_PREFIX', '.')]
-        return args
+    # def cmake_args(self):
+    #    spec = self.spec
+    #    args = [self.define('CMAKE_INSTALL_PREFIX', '.')]
+    #    return args
