@@ -12,11 +12,11 @@ class Hermes(CMakePackage):
     """
 
     homepage = "http://www.cs.iit.edu/~scs/assets/projects/Hermes/Hermes.html"
-    git = "https://github.com/HDFGroup/hermes.git"
+    git = "https://github.com/hyoklee/hermes.git"
 
     maintainers = ['hyoklee']
 
-    version('master', branch='master')
+    version('master', branch='master', default=True)
     version('0.7.0-beta', url="https://github.com/HDFGroup/hermes/archive/v0.7.0-beta.tar.gz", sha256='1046f537558e479c8a828fe8e289da410a0f82bdba199a40ea7ff0eb842d9382')
 
     variant('vfd', default=False, description='Enable HDF5 VFD')
