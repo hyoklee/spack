@@ -26,15 +26,10 @@ class Fabtsuite(CMakePackage):
     """Fabtsuite is a test suite for libfabric."""
 
     homepage = "https://www.hdfgroup.org"
-    git      = "https://github.com/hyoklee/fabtsuite.git"
+    git      = "https://github.com/mercury-hpc/fabtsuite.git"
 
     maintainers = ['hyoklee']
 
     version('main', branch='main')
 
     depends_on('libfabric')
-
-    # def cmake_args(self):
-    #    spec = self.spec
-    #    args = [self.define('CMAKE_INSTALL_PREFIX', '.')]
-    #    return args
