@@ -97,6 +97,7 @@ class Libfabric(AutotoolsPackage):
     depends_on("autoconf", when="@develop", type="build")
     depends_on("automake", when="@develop", type="build")
     depends_on("libtool", when="@develop", type="build")
+    depends_on("numactl", when="@1.15.0:")
 
     conflicts("@1.9.0", when="platform=darwin", msg="This distribution is missing critical files")
 
