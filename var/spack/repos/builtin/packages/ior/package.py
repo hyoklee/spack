@@ -39,29 +39,31 @@ class Ior(AutotoolsPackage):
 
     # The build for 3.2.0 fails if hdf5 is enabled
     # See https://github.com/hpc/ior/pull/124
-    patch('https://github.com/hpc/ior/commit/1dbca5c293f95074f9887ddb2043fa984670fb4d.patch?full_index=1',
-          sha256='ce7fa0eabf408f9b712c478a08aa62d68737d213901707ef8cbfc3aec02e2713',
-          when='@3.2.0 +hdf5')
+    patch(
+        "https://github.com/hpc/ior/commit/1dbca5c293f95074f9887ddb2043fa984670fb4d.patch?full_index=1",
+        sha256="ce7fa0eabf408f9b712c478a08aa62d68737d213901707ef8cbfc3aec02e2713",
+        when="@3.2.0 +hdf5",
+    )
 
-    @run_before('autoreconf')
+    @run_before("autoreconf")
     def bootstrap(self):
-        Executable('./bootstrap')()
+        Executable("./bootstrap")()
 
     def configure_args(self):
         spec = self.spec
         config_args = []
 
-        env['CC'] = spec['mpi'].mpicc
+        env["CC"] = spec["mpi"].mpicc
 
-        if '+hdf5' in spec:
-            config_args.append('--with-hdf5')
-            config_args.append('CFLAGS=-D H5_USE_16_API')
+        if "+hdf5" in spec:
+            config_args.append("--with-hdf5")
+            config_args.append("CFLAGS=-D H5_USE_16_API")
         else:
-            config_args.append('--without-hdf5')
+            config_args.append("--without-hdf5")
 
-        if '+ncmpi' in spec:
-            config_args.append('--with-ncmpi')
+        if "+ncmpi" in spec:
+            config_args.append("--with-ncmpi")
         else:
-            config_args.append('--without-ncmpi')
+            config_args.append("--without-ncmpi")
 
         return config_args

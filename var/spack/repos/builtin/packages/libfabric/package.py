@@ -8,13 +8,15 @@ from spack.package import *
 
 class Libfabric(AutotoolsPackage):
     """The Open Fabrics Interfaces (OFI) is a framework focused on exporting
-       fabric communication services to applications."""
+    fabric communication services to applications."""
 
     homepage = "https://libfabric.org/"
+
     url      = "https://github.com/ofiwg/libfabric/releases/download/v1.8.0/libfabric-1.8.0.tar.bz2"
     git      = "https://github.com/ofiwg/libfabric.git"
 
     maintainers = ['rajachan']
+
     version("main", branch="main")
     version("1.15.1", sha256="cafa3005a9dc86064de179b0af4798ad30b46b2f862fe0268db03d13943e10cd")
     version("1.15.0", sha256="70982c58eadeeb5b1ddb28413fd645e40b206618b56fbb2b18ab1e7f607c9bea")
@@ -69,60 +71,59 @@ class Libfabric(AutotoolsPackage):
     #   assist in memory registration caching in the GNI provider.  This
     #   device file can only be opened once per process, however, and thus it
     #   frequently conflicts with MPI.
-    variant('kdreg', default=False,
-            description='Enable kdreg on supported Cray platforms')
+    variant("kdreg", default=False, description="Enable kdreg on supported Cray platforms")
 
-    variant('debug', default=False,
-            description='Enable debugging')
+    variant("debug", default=False, description="Enable debugging")
 
     # For version 1.9.0:
     # headers: fix forward-declaration of enum fi_collective_op with C++
-    patch('https://github.com/ofiwg/libfabric/commit/2e95b0efd85fa8a3d814128e34ec57ffd357460e.patch?full_index=1',
-          sha256='456693e28bb1fc41a0bbb94b97ae054e7d28f81ca94795d7f294243da58c6376',
-          when='@1.9.0')
+    patch(
+        "https://github.com/ofiwg/libfabric/commit/2e95b0efd85fa8a3d814128e34ec57ffd357460e.patch?full_index=1",
+        sha256="456693e28bb1fc41a0bbb94b97ae054e7d28f81ca94795d7f294243da58c6376",
+        when="@1.9.0",
+    )
 
     # Fix for the inline assembly problem for the Nvidia compilers
     # https://github.com/ofiwg/libfabric/pull/7665
-    patch('nvhpc-symver.patch', when='@1.6.0:1.14.0 %nvhpc')
+    patch("nvhpc-symver.patch", when="@1.6.0:1.14.0 %nvhpc")
 
-    depends_on('rdma-core', when='fabrics=verbs')
-    depends_on('rdma-core', when='@1.10.0: fabrics=efa')
-    depends_on('opa-psm2', when='fabrics=psm2')
-    depends_on('psm', when='fabrics=psm')
-    depends_on('ucx', when='fabrics=mlx')
+    depends_on("rdma-core", when="fabrics=verbs")
+    depends_on("rdma-core", when="@1.10.0: fabrics=efa")
+    depends_on("opa-psm2", when="fabrics=psm2")
+    depends_on("psm", when="fabrics=psm")
+    depends_on("ucx", when="fabrics=mlx")
 
-    depends_on('m4', when='@develop', type='build')
-    depends_on('autoconf', when='@develop', type='build')
-    depends_on('automake', when='@develop', type='build')
-    depends_on('libtool', when='@develop', type='build')
+    depends_on("m4", when="@develop", type="build")
+    depends_on("autoconf", when="@develop", type="build")
+    depends_on("automake", when="@develop", type="build")
+    depends_on("libtool", when="@develop", type="build")
 
-    conflicts('@1.9.0', when='platform=darwin',
-              msg='This distribution is missing critical files')
+    conflicts("@1.9.0", when="platform=darwin", msg="This distribution is missing critical files")
 
     def setup_build_environment(self, env):
         if self.run_tests:
-            env.prepend_path('PATH', self.prefix.bin)
+            env.prepend_path("PATH", self.prefix.bin)
 
-    @when('@develop')
+    @when("@develop")
     def autoreconf(self, spec, prefix):
-        bash = which('bash')
-        bash('./autogen.sh')
+        bash = which("bash")
+        bash("./autogen.sh")
 
     def configure_args(self):
         args = []
 
-        args.extend(self.enable_or_disable('debug'))
+        args.extend(self.enable_or_disable("debug"))
 
-        if '+kdreg' in self.spec:
-            args.append('--with-kdreg=yes')
+        if "+kdreg" in self.spec:
+            args.append("--with-kdreg=yes")
         else:
-            args.append('--with-kdreg=no')
+            args.append("--with-kdreg=no")
 
         for fabric in self.fabrics:
-            if 'fabrics=' + fabric in self.spec:
-                args.append('--enable-{0}=yes'.format(fabric))
+            if "fabrics=" + fabric in self.spec:
+                args.append("--enable-{0}=yes".format(fabric))
             else:
-                args.append('--enable-{0}=no'.format(fabric))
+                args.append("--enable-{0}=no".format(fabric))
 
         return args
 
