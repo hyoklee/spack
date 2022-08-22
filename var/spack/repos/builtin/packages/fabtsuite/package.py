@@ -26,7 +26,7 @@ class Fabtsuite(CMakePackage):
     """Fabtsuite is a test suite for libfabric."""
 
     homepage = "https://www.hdfgroup.org"
-    git      = "https://github.com/mercury-hpc/fabtsuite.git"
+    git      = "https://github.com/hyoklee/fabtsuite.git"
 
     maintainers = ['hyoklee']
 
