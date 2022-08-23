@@ -100,6 +100,7 @@ class Libfabric(AutotoolsPackage):
     depends_on("numactl", when="@1.15.0:")
 
     conflicts("@1.9.0", when="platform=darwin", msg="This distribution is missing critical files")
+    conflicts("fabrics=opx", when="@:1.14.99")
 
     def setup_build_environment(self, env):
         if self.run_tests:
