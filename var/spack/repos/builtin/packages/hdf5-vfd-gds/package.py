@@ -11,12 +11,13 @@ class Hdf5VfdGds(CMakePackage, CudaPackage):
 
     # Package info
     homepage = "https://github.com/hpc-io/vfd-gds"
-    url = "https://github.com/hpc-io/vfd-gds/archive/refs/tags/1.0.1.tar.gz"
+    url = "https://github.com/hpc-io/vfd-gds/archive/refs/tags/1.0.2.tar.gz"
     git = "https://github.com/hpc-io/vfd-gds.git"
     maintainers = ["hyoklee", "lrknox"]
 
     # Versions
     version("master", branch="master")
+    version("1.0.2", sha256="f7df64ff62e057b525bc30ed6534f9c0752e52bd58b65f7c147878d6c68105ae")
     version("1.0.1", sha256="00e125fd149561be991f41e883824de826d8add604aebccf103a4fb82d5faac2")
     version("1.0.0", sha256="6b16105c7c49f13fc05784ee69b78d45fb159270c78d760689f9cd21e230ddd2")
 
