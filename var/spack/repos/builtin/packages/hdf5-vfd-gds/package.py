@@ -23,14 +23,16 @@ class Hdf5VfdGds(CMakePackage, CudaPackage):
 
     # Dependencies
     conflicts("~cuda")
-    depends_on("cmake@3.12:")
+    depends_on("cmake@3.12:", type="build")
     depends_on("hdf5@1.13.0:")
 
     def cmake_args(self):
-
         # CMake options
         args = [
             self.define("BUILD_TESTING", self.run_tests),
         ]
 
         return args
+
+    def setup_run_environment(self, env):
+        env.prepend_path("HDF5_PLUGIN_PATH", self.spec.prefix.lib)

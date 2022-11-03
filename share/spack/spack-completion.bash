@@ -335,7 +335,7 @@ _spacktivate() {
 _spack() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help -H --all-help --color -c --config -C --config-scope -d --debug --timestamp --pdb -e --env -D --env-dir -E --no-env --use-env-repo -k --insecure -l --enable-locks -L --disable-locks -m --mock -b --bootstrap -p --profile --sorted-profile --lines -v --verbose --stacktrace -V --version --print-shell-vars"
+        SPACK_COMPREPLY="-h --help -H --all-help --color -c --config -C --config-scope -d --debug --timestamp --pdb -e --env -D --env-dir -E --no-env --use-env-repo -k --insecure -l --enable-locks -L --disable-locks -m --mock -b --bootstrap -p --profile --sorted-profile --lines -v --verbose --stacktrace --backtrace -V --version --print-shell-vars"
     else
         SPACK_COMPREPLY="activate add arch audit blame bootstrap build-env buildcache cd change checksum ci clean clone commands compiler compilers concretize config containerize create deactivate debug dependencies dependents deprecate dev-build develop diff docs edit env extensions external fetch find gc gpg graph help info install license list load location log-parse maintainers make-installer mark mirror module patch pkg providers pydoc python reindex remove rm repo resource restage solve spec stage style tags test test-env tutorial undevelop uninstall unit-test unload url verify versions view"
     fi
@@ -425,11 +425,21 @@ _spack_bootstrap_status() {
 }
 
 _spack_bootstrap_enable() {
-    SPACK_COMPREPLY="-h --help --scope"
+    if $list_options
+    then
+        SPACK_COMPREPLY="-h --help --scope"
+    else
+        SPACK_COMPREPLY=""
+    fi
 }
 
 _spack_bootstrap_disable() {
-    SPACK_COMPREPLY="-h --help --scope"
+    if $list_options
+    then
+        SPACK_COMPREPLY="-h --help --scope"
+    else
+        SPACK_COMPREPLY=""
+    fi
 }
 
 _spack_bootstrap_reset() {
@@ -1738,7 +1748,7 @@ _spack_test() {
 _spack_test_run() {
     if $list_options
     then
-        SPACK_COMPREPLY="-h --help --alias --fail-fast --fail-first --externals --keep-stage --log-format --log-file --cdash-upload-url --cdash-build --cdash-site --cdash-track --cdash-buildstamp --help-cdash --clean --dirty"
+        SPACK_COMPREPLY="-h --help --alias --fail-fast --fail-first --externals -x --explicit --keep-stage --log-format --log-file --cdash-upload-url --cdash-build --cdash-site --cdash-track --cdash-buildstamp --help-cdash --clean --dirty"
     else
         _installed_packages
     fi
