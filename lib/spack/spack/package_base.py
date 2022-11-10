@@ -919,6 +919,12 @@ class PackageBase(six.with_metaclass(PackageMeta, WindowsRPathMeta, PackageViewM
         """
         return self._implement_all_urls_for_version(version)[0]
 
+    def update_external_dependencies(self):
+        """
+        Method to override in package classes to handle external dependencies
+        """
+        pass
+
     def all_urls_for_version(self, version):
         """Return all URLs derived from version_urls(), url, urls, and
         list_url (if it contains a version) in a package in that order.
@@ -1647,7 +1653,7 @@ class PackageBase(six.with_metaclass(PackageMeta, WindowsRPathMeta, PackageViewM
                 from_local_sources = env and env.is_develop(self.spec)
                 if self.has_code and not self.spec.external and not from_local_sources:
                     message = "Missing a source id for {s.name}@{s.version}"
-                    tty.warn(message.format(s=self))
+                    tty.debug(message.format(s=self))
                 hash_content.append("".encode("utf-8"))
             else:
                 hash_content.append(source_id.encode("utf-8"))
