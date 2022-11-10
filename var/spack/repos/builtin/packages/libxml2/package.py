@@ -20,7 +20,8 @@ class Libxml2(AutotoolsPackage):
     def url_for_version(self, version):
         if version >= Version("2.9.13"):
             url = "https://download.gnome.org/sources/libxml2/{0}/libxml2-{1}.tar.xz"
-            return url.format(version.up_to(2), version)
+            # return url.format(version.up_to(2), version)
+            return "https://download.gnome.org/sources/libxml2/2.10/libxml2-2.10.1.tar.xz"
         return "http://xmlsoft.org/sources/libxml2-{0}.tar.gz".format(version)
 
     version("2.10.1", sha256="21a9e13cc7c4717a6c36268d0924f92c3f67a1ece6b7ff9d588958a6db9fb9d8")
