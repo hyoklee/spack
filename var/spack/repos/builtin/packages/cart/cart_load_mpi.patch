@@ -1,0 +1,16 @@
+diff --git a/SConstruct b/SConstruct
+index c5bed72..613b65f 100644
+--- a/SConstruct
++++ b/SConstruct
+@@ -92,8 +92,8 @@ def scons():
+     opts = Variables(opts_file)
+     prereqs = PreReqComponent(env, opts, arch=platform)
+     prereqs.load_definitions(prebuild=['mercury', 'uuid', 'crypto', 'boost'])
+-    if env.subst("$MPI_PKG") == "":
+-        load_mpi('openmpi')
++#    if env.subst("$MPI_PKG") == "":
++#        load_mpi('openmpi')
+
+     if not env.GetOption('clean'):
+         run_checks(env)
+

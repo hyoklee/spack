@@ -1,0 +1,39 @@
+diff --git a/src/cart/crt_hg.c b/src/cart/crt_hg.c
+index f1f2593..3aac902 100644
+--- a/src/cart/crt_hg.c
++++ b/src/cart/crt_hg.c
+@@ -501,6 +501,7 @@ crt_hg_init(crt_phy_addr_t *addr, bool server)
+ 	hg_class_t		*hg_class = NULL;
+ 	struct hg_init_info	 init_info = HG_INIT_INFO_INITIALIZER;
+ 	int			 rc = 0;
++	bool			 no_block = false;
+ 
+ 	if (crt_initialized()) {
+ 		D_ERROR("CaRT already initialized.\n");
+@@ -519,7 +520,8 @@ crt_hg_init(crt_phy_addr_t *addr, bool server)
+ 	if (rc != 0)
+ 		D_GOTO(out, rc);
+ 
+-	init_info.na_init_info.progress_mode = 0;
++	d_getenv_bool("CRT_NO_BLOCK", &no_block);
++	init_info.na_init_info.progress_mode = (no_block) ? NA_NO_BLOCK : 0;
+ 	init_info.na_init_info.max_contexts = 1;
+ 	if (crt_gdata.cg_share_na == false)
+ 		/* one context per NA class */
+@@ -675,12 +677,15 @@ crt_hg_ctx_init(struct crt_hg_context *hg_ctx, int idx)
+ 	} else {
+ 		char		addr_str[CRT_ADDR_STR_MAX_LEN] = {'\0'};
+ 		na_size_t	str_size = CRT_ADDR_STR_MAX_LEN;
++		bool		no_block = false;
+ 
+ 		rc = crt_get_info_string(&info_string);
+ 		if (rc != 0)
+ 			D_GOTO(out, rc);
+ 
+-		init_info.na_init_info.progress_mode = 0;
++		d_getenv_bool("CRT_NO_BLOCK", &no_block);
++		init_info.na_init_info.progress_mode = (no_block) ? NA_NO_BLOCK : 0;
++
+ 		init_info.na_init_info.max_contexts = 1;
+ 		na_class = NA_Initialize_opt(info_string, crt_is_service(),
+ 					     &init_info.na_init_info);

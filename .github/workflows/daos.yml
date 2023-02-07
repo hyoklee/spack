@@ -1,0 +1,20 @@
+name: daos
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout spack
+      uses: actions/checkout@v3
+    - name: Run a multi-line script
+      run: |
+        . ./share/spack/setup-env.sh
+        spack install daos
+        

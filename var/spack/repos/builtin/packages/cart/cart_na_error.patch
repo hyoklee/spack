@@ -1,0 +1,12 @@
+diff --git a/src/cart/crt_hg.h b/src/cart/crt_hg.h
+index c00e815..076b695 100644
+--- a/src/cart/crt_hg.h
++++ b/src/cart/crt_hg.h
+@@ -50,7 +50,6 @@
+ #include <mercury_proc_string.h>
+ #include <mercury_log.h>
+ #include <na.h>
+-#include <na_error.h>
+ 
+ /** the shared HG RPC ID used for all CRT opc */
+ #define CRT_HG_RPCID		(0xDA036868)

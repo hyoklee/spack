@@ -1,0 +1,30 @@
+diff --git a/src/SConscript b/src/SConscript
+index a9d12e6..c93261a 100644
+--- a/src/SConscript
++++ b/src/SConscript
+@@ -72,24 +72,6 @@ def scons():
+     # Build the unit tests
+     SConscript('utest/SConscript')
+ 
+-    if not env.GetOption('clean'):
+-
+-        print("Checking local headers can be included")
+-        broken_includes = False
+-        config_env = env.Clone()
+-        config = Configure(config_env)
+-        for header in HEADERS_GURT:
+-            if not config.CheckHeader(os.path.join('gurt', header)):
+-                broken_includes = True
+-        for header in HEADERS:
+-            if not config.CheckHeader(os.path.join('cart', header)):
+-                broken_includes = True
+-        config.Finish()
+-
+-        if broken_includes:
+-            print("Broken local header files, cannot continue")
+-            Exit(2)
+-
+     Default('gurt', 'swim', 'cart', 'test', 'self_test')
+ 
+ if __name__ == "SCons.Script":
+
