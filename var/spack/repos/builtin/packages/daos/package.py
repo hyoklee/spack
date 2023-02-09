@@ -141,7 +141,7 @@ class Daos(SConsPackage):
                 format(spec['mercury'].prefix),
                 format(spec['libfabric'].prefix),
                 format(spec['protobuf-c'].prefix),
-                format(spec['spdk'].prefix),
+                # format(spec['spdk'].prefix),
                 format(spec['libuuid'].prefix),
                 format(spec['libyaml'].prefix)
             ]
