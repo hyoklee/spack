@@ -54,7 +54,7 @@ class Daos(SConsPackage):
 
     depends_on('argobots')
     depends_on('mercury+boostsys', when='@1.1.0:')
-    depends_on('boost', type='build', when='@1.1.0:')
+    depends_on('boost@develop+python', type='build', when='@1.1.0:')
     depends_on('cart@daos-1.0', when='@1.0.0')
     depends_on('cart@daos-0.9', when='@0.9.0')
     depends_on('cart@daos-0.8', when='@0.8.0')
@@ -62,7 +62,7 @@ class Daos(SConsPackage):
     depends_on('cart@daos-0.6', when='@0.6.0')
     depends_on('cmocka', type='build')
     depends_on('libfuse@3.6.1:')
-    depends_on('hwloc')
+    depends_on('hwloc@master')
     depends_on('hwloc@:1.999', when='@:1.0.0')
     depends_on('isa-l')
     depends_on('isa-l_crypto', when='@1.1.0:')
@@ -74,13 +74,14 @@ class Daos(SConsPackage):
     depends_on('pmdk@1.11.1:', when='@2.0.0:')
     depends_on('protobuf-c')
     depends_on('py-distro')
+    depends_on('py-pip')
     depends_on('readline')
     depends_on('spdk@18.07.1+fio', when='@0.6.0')
     depends_on('spdk@19.04.1+shared', when='@0.7.0:1.0.0')
     depends_on('spdk@20.01+shared+rdma', when='@1.1.0:1.2.0')
-#    depends_on('spdk@21.07+shared+rdma', when='@2.0.0:')
     depends_on('libfabric', when='@0.7.0:')
-
+    depends_on('scons@4.4.0')
+    
     depends_on('go', type='build')
 
     patch('daos_goreq_1_0.patch', when='@1.0.0')
@@ -99,12 +100,16 @@ class Daos(SConsPackage):
     patch('daos_load_mpi_1_1_2.patch', when='@1.1.2')
     patch('daos_allow_fwd_1_1_2.patch', when='@1.1.2:1.2.0+fwd')
     patch('daos_load_mpi_1_1_3.patch', when='@1.1.3:1.2.0')
-    patch('daos_dpdk.patch', when='@2.0.0:')
-    patch('daos_allow_fwd_2_0_0.patch', when='@2.0.0:+fwd')
+    patch('daos_dpdk.patch', when='@2.0.0:2.0.2')
+    patch('daos_allow_fwd_2_0_0.patch', when='@2.0.0:2.0.2')
 
     def build_args(self, spec, prefix):
+
+        Executable('pip install -r requirements.txt')
+        # pip("install -r requirements.txt")
         args = [
             'PREFIX={0}'.format(prefix),
+            '--build-deps=yes'
         ]
 
         if self.spec.satisfies('@1.0.0'):
