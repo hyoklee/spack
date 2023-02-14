@@ -68,8 +68,8 @@ class Daos2(MakefilePackage):
     depends_on('spdk@19.04.1+shared', when='@0.7.0:1.0.0')
     depends_on('spdk@20.01+shared+rdma', when='@1.1.0:1.2.0')
     depends_on('libfabric', when='@0.7.0:')
+    depends_on('libunwind')
     depends_on('scons@4.4.0')
-    
     depends_on('go', type='build')
 
 
