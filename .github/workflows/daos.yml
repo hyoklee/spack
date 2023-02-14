@@ -16,5 +16,5 @@ jobs:
     - name: Run a multi-line script
       run: |
         . ./share/spack/setup-env.sh
-        spack install daos2 ^protobuf-c@1.4.1 ^protobuf@3.21.12
+        spack install -v --show-log-on-error daos2 ^protobuf-c@1.4.1 ^protobuf@3.21.12
         
