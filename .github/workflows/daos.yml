@@ -16,8 +16,6 @@ jobs:
     - name: Run a multi-line script
       run: |
         . ./share/spack/setup-env.sh
-        spack install py-pip
-        spack load py-pip
-        which pip
-        spack install -v --show-log-on-error daos@master ^protobuf-c@1.4.1 ^protobuf@3.21.12
+        spack spec daos ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.11.1
+        spack install -v --show-log-on-error daos@master ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.11.1
         

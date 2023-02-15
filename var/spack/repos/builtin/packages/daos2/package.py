@@ -41,7 +41,6 @@ class Daos2(MakefilePackage):
             description='Enable debugging info and strict compile warnings')
 
     depends_on('argobots')
-    depends_on('mercury@master+boostsys', when='@1.1.0:')
     depends_on('boost@develop+python', type='build', when='@1.1.0:')
     depends_on('cart@daos-1.0', when='@1.0.0')
     depends_on('cart@daos-0.9', when='@0.9.0')
@@ -49,13 +48,16 @@ class Daos2(MakefilePackage):
     depends_on('cart@daos-0.7', when='@0.7.0')
     depends_on('cart@daos-0.6', when='@0.6.0')
     depends_on('cmocka', type='build')
-    depends_on('libfuse@3.6.1:')
+    depends_on('go', type='build')        
     depends_on('hwloc@master')
-    depends_on('hwloc@:1.999', when='@:1.0.0')
     depends_on('isa-l')
     depends_on('isa-l_crypto', when='@1.1.0:')
+    depends_on('libfuse@3.6.1:')    
+    depends_on('libunwind')    
     depends_on('libuuid')
     depends_on('libyaml')
+    depends_on('libfabric', when='@0.7.0:')
+    depends_on('mercury@master+boostsys', when='@1.1.0:')    
     depends_on('openmpi', when='@:0.8.0')
     depends_on('openssl')
     depends_on('pmdk')
@@ -64,12 +66,12 @@ class Daos2(MakefilePackage):
     depends_on('py-pip')    
     depends_on('py-distro')
     depends_on('readline')
+    depends_on('scons@4.4.0')    
     depends_on('spdk@18.07.1+fio', when='@0.6.0')
     depends_on('spdk@19.04.1+shared', when='@0.7.0:1.0.0')
     depends_on('spdk@20.01+shared+rdma', when='@1.1.0:1.2.0')
-    depends_on('libfabric', when='@0.7.0:')
-    depends_on('libunwind')
-    depends_on('scons@4.4.0')
-    depends_on('go', type='build')
+
+
+
 
 
