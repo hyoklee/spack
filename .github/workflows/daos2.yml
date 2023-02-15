@@ -20,6 +20,6 @@ jobs:
     - name: Run a multi-line script
       run: |
         . ./share/spack/setup-env.sh
-        spack spec daos2 ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.11.1
+        spack spec daos2 ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6
         spack install -v --show-log-on-error daos2 ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.11.1
         
