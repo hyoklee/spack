@@ -1,4 +1,4 @@
-name: daos
+name: daos3
 
 on:
   push:
@@ -19,6 +19,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         repository: hyoklee/daos
+        path: daos
     - name: Install DAOS dependencies
       run: |    
         cd daos
