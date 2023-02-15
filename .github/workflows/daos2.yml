@@ -1,4 +1,4 @@
-name: daos
+name: daos2
 
 on:
   push:
@@ -19,5 +19,5 @@ jobs:
         spack install py-pip
         spack load py-pip
         which pip
-        spack install -v --show-log-on-error daos@master ^protobuf-c@1.4.1 ^protobuf@3.21.12
+        spack install -v --show-log-on-error daos2 ^protobuf-c@1.4.1 ^protobuf@3.21.12
         
