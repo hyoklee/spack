@@ -13,6 +13,10 @@ jobs:
     steps:
     - name: Checkout spack
       uses: actions/checkout@v3
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -q -y ninja-build automake autoconf libtool libtool-bin mpich libmpich-dev dpdk libraft-dev libboost-dev libunwind-devel          
     - name: Run a multi-line script
       run: |
         . ./share/spack/setup-env.sh
