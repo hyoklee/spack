@@ -1,0 +1,35 @@
+name: daos
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -q -y ninja-build automake autoconf libtool libtool-bin mpich libmpich-dev dpdk libraft-dev libboost-dev libunwind-dev
+    - name: Checkout DAOS
+      uses: actions/checkout@v3
+      with:
+        repository: hyoklee/daos
+    - name: Install DAOS dependencies        
+        path: daos
+        cd daos
+        sudo ./utils/scripts/install-ubuntu.sh
+        sudo pip install -r requirements.txt
+        cd ..        
+    - name: Checkout spack
+      uses: actions/checkout@v3
+    - name: Run a multi-line script
+      run: |
+        . ./share/spack/setup-env.sh
+        spack spec daos ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6
+        spack install -v --show-log-on-error daos@master ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6
+        
