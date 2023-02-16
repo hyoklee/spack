@@ -16,11 +16,12 @@ class Spdk(AutotoolsPackage):
     """
 
     homepage = "https://spdk.io"
-    url      = "https://github.com/spdk/spdk/archive/v19.01.tar.gz"
+    url      = "https://github.com/spdk/spdk/archive/v23.01.tar.gz"
     git      = "https://github.com/spdk/spdk"
     maintainers("hyoklee")
 
     version('master',  branch='master', submodules=True)
+    version('23.01',   tag='v23.01',    submodules=True)    
     version('22.01.2', tag='v22.01.2',  submodules=True)    
     version('21.07',   tag='v21.07',    submodules=True)
     version('20.01.2', tag='v20.01.2',  submodules=True)
@@ -117,4 +118,3 @@ class Spdk(AutotoolsPackage):
         install_tree('examples/nvme/fio_plugin', join_path(prefix.share, 'spdk', 'fio_plugin'))
         install_tree('include', join_path(prefix.share, 'spdk', 'include'))
         install_tree('scripts', join_path(prefix.share, 'spdk', 'scripts'))
-
