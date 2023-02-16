@@ -1,8 +1,27 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+##############################################################################
+# Copyright (c) 2013-2016, Lawrence Livermore National Security, LLC.
+# Produced at the Lawrence Livermore National Laboratory.
 #
-# SPDX-License-Identifier: (Apache-2.0 OR MIT)
-
+# This file is part of Spack.
+# Created by Todd Gamblin, tgamblin@llnl.gov, All rights reserved.
+# LLNL-CODE-647188
+#
+# For details, see https://github.com/llnl/spack
+# Please also see the LICENSE file for our notice and the LGPL.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License (as
+# published by the Free Software Foundation) version 2.1, February 1999.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms and
+# conditions of the GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+##############################################################################
 from spack import *
 
 
@@ -34,6 +53,7 @@ class Daos(SConsPackage):
             description='Enable debugging info and strict compile warnings')
 
     depends_on('argobots')
+    depends_on('mercury+boostsys', when='@1.1.0:')
     depends_on('boost@develop+python', type='build', when='@1.1.0:')
     depends_on('cart@daos-1.0', when='@1.0.0')
     depends_on('cart@daos-0.9', when='@0.9.0')
@@ -43,14 +63,11 @@ class Daos(SConsPackage):
     depends_on('cmocka', type='build')
     depends_on('libfuse@3.6.1:')
     depends_on('hwloc@master')
-    depends_on('go', type='build')    
+    depends_on('hwloc@:1.999', when='@:1.0.0')
     depends_on('isa-l')
     depends_on('isa-l_crypto', when='@1.1.0:')
-    depends_on('libfabric', when='@0.7.0:')    
     depends_on('libuuid')
-    depends_on('libunwind')    
     depends_on('libyaml')
-    depends_on('mercury+boostsys', when='@1.1.0:')    
     depends_on('openmpi', when='@:0.8.0')
     depends_on('openssl')
     depends_on('pmdk')
@@ -59,10 +76,13 @@ class Daos(SConsPackage):
     depends_on('py-distro')
     depends_on('py-pip')
     depends_on('readline')
-    depends_on('scons@4.4.0')    
     depends_on('spdk@18.07.1+fio', when='@0.6.0')
     depends_on('spdk@19.04.1+shared', when='@0.7.0:1.0.0')
     depends_on('spdk@20.01+shared+rdma', when='@1.1.0:1.2.0')
+    depends_on('libfabric', when='@0.7.0:')
+    depends_on('scons@4.4.0')
+    
+    depends_on('go', type='build')
 
     patch('daos_goreq_1_0.patch', when='@1.0.0')
     patch('daos_goreq_0_8.patch', when='@0.8.0:0.9.0')
@@ -127,7 +147,7 @@ class Daos(SConsPackage):
                 format(spec['mercury'].prefix),
                 format(spec['libfabric'].prefix),
                 format(spec['protobuf-c'].prefix),
-                # format(spec['spdk'].prefix),
+                format(spec['spdk'].prefix),
                 format(spec['libuuid'].prefix),
                 format(spec['libyaml'].prefix)
             ]
