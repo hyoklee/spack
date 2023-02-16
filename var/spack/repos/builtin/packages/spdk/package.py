@@ -1,4 +1,4 @@
-# Copyright 2013-2019 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -18,6 +18,7 @@ class Spdk(AutotoolsPackage):
     homepage = "https://spdk.io"
     url      = "https://github.com/spdk/spdk/archive/v19.01.tar.gz"
     git      = "https://github.com/spdk/spdk"
+    maintainers("hyoklee")
 
     version('master',  branch='master', submodules=True)
     version('22.01.2', tag='v22.01.2',  submodules=True)    
