@@ -32,7 +32,5 @@ class Daos2(MakefilePackage):
     depends_on('openssl')
     depends_on('pmdk')
     depends_on('protobuf-c')
-    depends_on('py-pip')    
-    depends_on('py-distro')
     depends_on('readline')
     depends_on('scons@4.4.0')    
