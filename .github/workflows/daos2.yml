@@ -16,6 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
+        wget https://raw.githubusercontent.com/daos-stack/daos/master/utils/scripts/install-ubuntu.sh        
         chmod u+x install-ubuntu.sh
         sudo ./install-ubuntu.sh
     - name: Run a multi-line script
