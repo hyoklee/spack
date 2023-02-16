@@ -1,6 +1,6 @@
 #!/bin/tcsh
-# set list = (async cache external-passthrough log adios2 rest)
-set list = (log)
+# set list = (adios2 async cache daos external-passthrough log rest)
+set list = (daos)
 foreach a ($list)
     echo "Testing $a"
     ./spack uninstall --all --force --yes-to-all hdf5-vol-tests
@@ -39,6 +39,12 @@ foreach a ($list)
         setenv LD_PRELOAD $b/lib/libabt.so
         setenv HDF5_VOL_CONNECTOR "cache_ext config=config1.dat;under_vol=0;under_info={};"
         breaksw
+    case 'daos':
+        set b="`./spack find --paths argobots | tail  -1 | cut -d' ' -f 3-`"
+        echo $b
+        setenv LD_PRELOAD $b/lib/libabt.so
+        setenv HDF5_VOL_CONNECTOR "daos"
+        breaksw        
     case 'external-passthrough'
         setenv HDF5_VOL_CONNECTOR "pass_through_ext under_vol=0;under_info={};"
         breaksw
