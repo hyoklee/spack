@@ -41,28 +41,28 @@ class Spdk(AutotoolsPackage):
     variant('vhost', default=False, description='Build vhost target')
     variant('virtio', default=False, description='Build vhost initiator and virtio-pci bdev modules')
     variant('pmdk', default=False, description='Build persistent memory bdev')
-    # variant('reduce', when="@:22.01.2", default=False, description='Build vbdev compression module')
+    variant('reduce', when="@18.07:22.01.2", default=False, description='Build vbdev compression module')
     variant('rbd', default=False, description='Build Ceph RBD bdev module')
     variant('rdma', default=False, description='Build RDMA transport for NVMf target and initiator')
     variant('shared', default=False, description='Build spdk shared libraries')
     variant('iscsi-initiator', default=False, description='Build with iscsi bdev module')
     variant('vtune', default=False, description='Required to profile I/O under Intel VTune Amplifier XE')
     variant('ocf', default=False, description='Build OCF library and bdev module')
-    variant('isal', default=False, description='Build with ISA-L')
+    variant('isal', when="@18.07:22.01.2", default=False, description='Build with ISA-L')
     variant('uring', default=False, description='Build I/O uring bdev')
 
     mods = ('crypto',
             'vhost',
             'virtio',
             'pmdk',
-            # 'reduce',
+#           'reduce',
             'rbd',
             'rdma',
             'shared',
             'iscsi-initiator',
             'vtune',
             'ocf',
-            'isal',
+#            'isal',
             'uring',
            )
 
