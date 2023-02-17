@@ -1,0 +1,23 @@
+name: spdk~vhost+virtio
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -q -y ninja-build automake autoconf libtool libtool-bin mpich libmpich-dev dpdk libraft-dev libboost-dev libunwind-dev
+    - name: Checkout spack
+      uses: actions/checkout@v3
+    - name: Run a multi-line script
+      run: |
+        . ./share/spack/setup-env.sh
+        spack install -v --show-log-on-error spdk~vhost+virtio
