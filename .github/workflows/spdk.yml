@@ -20,4 +20,5 @@ jobs:
     - name: Run a multi-line script
       run: |
         . ./share/spack/setup-env.sh
+        spack spec spdk~vhost+virtio
         spack install -v --show-log-on-error spdk~vhost+virtio

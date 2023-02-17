@@ -55,14 +55,12 @@ class Spdk(AutotoolsPackage):
             'vhost',
             'virtio',
             'pmdk',
-#           'reduce',
             'rbd',
             'rdma',
             'shared',
             'iscsi-initiator',
             'vtune',
             'ocf',
-#            'isal',
             'uring',
            )
 
@@ -78,7 +76,10 @@ class Spdk(AutotoolsPackage):
         config_args = [
             '--disable-tests',
         ]
-
+        
+        if spec.satisfies('@18.07:22.01.2'):
+            mods = mods + ('reduce','isal',)
+            
         if spec.satisfies('@21.07:'):
             config_args.append('--disable-unit-tests')
             config_args.append('--disable-apps')
