@@ -41,7 +41,7 @@ class Spdk(AutotoolsPackage):
     variant('vhost', default=False, description='Build vhost target')
     variant('virtio', default=False, description='Build vhost initiator and virtio-pci bdev modules')
     variant('pmdk', default=False, description='Build persistent memory bdev')
-    variant('reduce', when="@:22.01.2", default=False, description='Build vbdev compression module')
+    # variant('reduce', when="@:22.01.2", default=False, description='Build vbdev compression module')
     variant('rbd', default=False, description='Build Ceph RBD bdev module')
     variant('rdma', default=False, description='Build RDMA transport for NVMf target and initiator')
     variant('shared', default=False, description='Build spdk shared libraries')
@@ -55,7 +55,7 @@ class Spdk(AutotoolsPackage):
             'vhost',
             'virtio',
             'pmdk',
-            'reduce',
+            # 'reduce',
             'rbd',
             'rdma',
             'shared',
