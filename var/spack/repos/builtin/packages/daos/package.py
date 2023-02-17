@@ -57,7 +57,7 @@ class Daos(SConsPackage):
     depends_on('pmdk')
     depends_on('pmdk@1.11.1:', when='@2.0.0:')
     depends_on('protobuf-c')
-    # depends_on('py-distro')
+    depends_on('py-distro')
     # depends_on('py-pip')
     depends_on('readline')
     depends_on('scons@4.4.0')

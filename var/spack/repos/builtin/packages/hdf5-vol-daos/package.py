@@ -6,20 +6,22 @@ from spack import *
 
 
 class Hdf5VolDaos(CMakePackage):
-    """The HDF5 DAOS VOL connector is an external VOL connector that interfaces with the DAOS API"""
+    """The HDF5 DAOS VOL connector is an external VOL connector
+    that interfaces with the DAOS API"""
 
-    homepage = ''
-    url = 'https://github.com/HDFGroup/vol-daos/releases/download/v1.1.0/hdf5_vol_daos-1.1.0.tar.bz2'
+    homepage = 'https://github.com/HDFGroup/vol-daos'
+    url = 'https://github.com/HDFGroup/vol-daos/releases/download/v1.2.0/hdf5_vol_daos-1.2.0.tar.bz2'
     git = 'https://github.com/HDFGroup/vol-daos.git'
 
-    maintainers = ['soumagne']
+    maintainers('hyoklee',
+                'soumagne')
 
     version('master', branch='master', submodules=True)
-    version('1.1.0', sha256='b3b20e1ee625321a54b3c193be42f68c8ac3c4f127cee6d53cd39b8f230d567a')
+    version('1.2.0', sha256='b3b20e1ee625321a54b3c193be42f68c8ac3c4f127cee6d53cd39b8f230d567a')
 
     depends_on('cmake@2.8.12.2:', type='build')
     depends_on('daos@2.0.0:')
-    depends_on('hdf5@1.13.0:+hl+mpi+map')
+    depends_on('hdf5@1.14.0:+hl+mpi+map')
 
     def cmake_args(self):
         """Populate cmake arguments for HDF5 DAOS."""
