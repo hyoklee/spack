@@ -71,7 +71,8 @@ class Spdk(AutotoolsPackage):
     depends_on('meson')    
     depends_on('numactl')
     depends_on('libaio')
-
+    depends_on('py-pyelftools')
+    
     def configure_args(self):
         spec = self.spec
         config_args = [
