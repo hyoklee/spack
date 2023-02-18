@@ -52,7 +52,7 @@ class Daos(SConsPackage):
     depends_on('libunwind')    
     depends_on('libyaml')
     depends_on('mercury+boostsys', when='@1.1.0:')    
-    depends_on('openmpi', when='@:0.8.0')
+    depends_on('mpich')
     depends_on('openssl')
     depends_on('pmdk')
     depends_on('pmdk@1.11.1:', when='@2.0.0:')
@@ -128,6 +128,7 @@ class Daos(SConsPackage):
                 format(spec['isa-l'].prefix),
                 format(spec['isa-l_crypto'].prefix),
                 format(spec['mercury'].prefix),
+                format(spec['meson'].prefix),
                 format(spec['libfabric'].prefix),
                 format(spec['protobuf-c'].prefix),
                 format(spec['spdk'].prefix),

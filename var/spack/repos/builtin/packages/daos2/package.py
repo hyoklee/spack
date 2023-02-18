@@ -35,5 +35,5 @@ class Daos2(MakefilePackage):
     depends_on('py-distro')
     depends_on('readline')
     depends_on('scons')    
-    depends_on('spdk')
+    depends_on('spdk')    
     
