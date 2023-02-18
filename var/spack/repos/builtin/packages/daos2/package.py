@@ -15,6 +15,8 @@ class Daos2(MakefilePackage):
     git      = 'https://github.com/hyoklee/daos.git'
 
     version('master', branch='master', submodules=True)
+    depends_on('scons')
+    depends_on('py-distro')    
     depends_on('argobots')
     depends_on('boost@develop+python', type='build')
     depends_on('cmocka', type='build')
@@ -32,8 +34,6 @@ class Daos2(MakefilePackage):
     depends_on('openssl')
     depends_on('pmdk')
     depends_on('protobuf-c')
-    depends_on('py-distro')
     depends_on('readline')
-    depends_on('scons')    
     depends_on('spdk')    
     
