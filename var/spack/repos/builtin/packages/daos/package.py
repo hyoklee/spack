@@ -43,6 +43,7 @@ class Daos(SConsPackage):
     depends_on('cart@daos-0.7', when='@0.7.0')
     depends_on('cart@daos-0.6', when='@0.6.0')
     depends_on('cmocka', type='build')
+    depends_on('dpdk')
     depends_on('libfuse@3.6.1:')
     depends_on('hwloc@master')
     depends_on('go', type='build')    
@@ -119,10 +120,10 @@ class Daos(SConsPackage):
         if self.spec.satisfies('@1.1.0:'):
             # Construct ALT_PREFIX and make sure '/usr' is last
             alt_prefix = [
-                format(spec['pmdk'].prefix),
                 format(spec['argobots'].prefix),
                 format(spec['boost'].prefix),
                 format(spec['cmocka'].prefix),
+                format(spec['dpdk'].prefix),                
                 format(spec['openssl'].prefix),
                 format(spec['libfuse'].prefix),
                 format(spec['hwloc'].prefix),
@@ -131,6 +132,7 @@ class Daos(SConsPackage):
                 format(spec['mercury'].prefix),
                 format(spec['meson'].prefix),
                 format(spec['libfabric'].prefix),
+                format(spec['pmdk'].prefix),                
                 format(spec['protobuf-c'].prefix),
                 format(spec['spdk'].prefix),
                 format(spec['libuuid'].prefix),
