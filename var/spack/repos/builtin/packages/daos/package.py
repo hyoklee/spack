@@ -87,9 +87,9 @@ class Daos(SConsPackage):
 
     def build_args(self, spec, prefix):
 
-        Executable('which pip')
-        os.system('which pip3')
-        subprocess.run("pip3 install -r requirements.txt", shell=True)
+        # Executable('which pip')
+        # os.system('which pip3')
+        # subprocess.run("pip3 install -r requirements.txt", shell=True)
         args = [
             'PREFIX={0}'.format(prefix),
             '--build-deps=yes'
