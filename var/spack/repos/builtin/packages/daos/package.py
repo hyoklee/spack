@@ -16,6 +16,7 @@ class Daos(SConsPackage):
     maintainers("hyoklee")
 
     version('master', branch='master', submodules=True)
+    version('2.2.0', tag='v2.2.0', submodules=True)    
     version('2.0.2', tag='v2.0.2', submodules=True)
     version('1.2.0', tag='v1.2.0', submodules=True)
     version('1.1.4', tag='v1.1.4', submodules=True)
