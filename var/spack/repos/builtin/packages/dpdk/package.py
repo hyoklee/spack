@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Dpdk(Meson):
+class Dpdk(MesonPackage):
     """DPDK is a set of libraries and drivers for fast packet processing.
     It supports many processor architectures and both FreeBSD and Linux."""
 
