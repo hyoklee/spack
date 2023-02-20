@@ -6,7 +6,7 @@
 from spack.package import *
 
 
-class Dpdk(MakefilePackage):
+class Dpdk(Meson):
     """DPDK is a set of libraries and drivers for fast packet processing.
     It supports many processor architectures and both FreeBSD and Linux."""
 
@@ -22,12 +22,11 @@ class Dpdk(MakefilePackage):
     version("19.02", sha256="04885d32c86fff5aefcfffdb8257fed405233602dbcd22f8298be13c2e285a50")
 
     conflicts("target=aarch64:", msg="DPDK is not supported on aarch64.")
-
+    
+    depends_on('meson', type='build')
+    depends_on('ninja', type='build')
     depends_on("numactl")
-
-    def build(self, spec, prefix):
-        make("defconfig")
-        make()
-
-    def install(self, spec, prefix):
-        install_tree(".", prefix)
+    
+    def meson_args(self):
+        return ['--warnlevel=3']
+    
