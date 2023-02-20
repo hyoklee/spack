@@ -94,7 +94,8 @@ class Daos(SConsPackage):
         # subprocess.run("pip3 install -r requirements.txt", shell=True)
         args = [
             'PREFIX={0}'.format(prefix),
-            '--build-deps=yes'
+            '--build-deps=yes',
+            '--debug=explain,findlibs,includes,stracktrace'
         ]
 
         if self.spec.satisfies('@1.0.0'):
