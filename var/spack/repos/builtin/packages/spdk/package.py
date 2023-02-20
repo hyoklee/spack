@@ -78,7 +78,7 @@ class Spdk(AutotoolsPackage):
         ]
         
         if spec.satisfies('@18.07:22.01.2'):
-            mods = mods + ('reduce','isal',)
+            self.mods = self.mods + ('reduce','isal',)
             
         if spec.satisfies('@21.07:'):
             config_args.append('--disable-unit-tests')
