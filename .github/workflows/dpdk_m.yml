@@ -1,10 +1,10 @@
-name: dpdk
+name: dpdk@main
 
 on:
   push:
-    branches: [ develop- ]
+    branches: [ develop ]
   pull_request:
-    branches: [ develop- ]
+    branches: [ develop ]
   workflow_dispatch:
 
 jobs:
@@ -20,5 +20,5 @@ jobs:
     - name: Run a multi-line script
       run: |
         . ./share/spack/setup-env.sh
-        spack spec dpdk
-        spack install -v --show-log-on-error dpdk
+        spack spec dpdk@main
+        spack install -v --show-log-on-error dpdk@main

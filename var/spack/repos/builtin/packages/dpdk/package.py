@@ -14,6 +14,7 @@ class Dpdk(MesonPackage):
     url = "https://github.com/DPDK/dpdk/archive/v22.11.tar.gz"
     maintainers("hyoklee")
 
+    version('master',  branch='main')
     version("22.11", sha256="ed8b2a2b153f0311ffa065d35af29a098367af44a22b3c33e191e1a74211f2e3")
     version("20.02", sha256="29e56ea8e47e30110ecb881fa5a37125a865dd2d45b61f68e93e334caaab16b7")
     version("19.11", sha256="ce1befb20a5e5c5399b326a39cfa23314a5229c0ced2553f53b09b1ae630706b")
