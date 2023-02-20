@@ -25,6 +25,7 @@ class Dpdk(MesonPackage):
     
     depends_on('meson', type='build')
     depends_on('ninja', type='build')
+    depends_on('py-pyelftools')    
     depends_on("numactl")
     
     def meson_args(self):
