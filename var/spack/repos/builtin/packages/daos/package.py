@@ -95,7 +95,7 @@ class Daos(SConsPackage):
         args = [
             'PREFIX={0}'.format(prefix),
             '--build-deps=yes',
-            '--debug=explain,findlibs,includes,stracktrace'
+            '--debug=explain,findlibs,includes'
         ]
 
         if self.spec.satisfies('@1.0.0'):
