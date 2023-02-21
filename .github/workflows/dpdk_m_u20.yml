@@ -1,4 +1,4 @@
-name: dpdk@main
+name: dpdk@main u20
 
 on:
   push:

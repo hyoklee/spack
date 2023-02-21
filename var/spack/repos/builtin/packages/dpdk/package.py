@@ -12,7 +12,8 @@ class Dpdk(MesonPackage):
 
     homepage = "https://github.com/DPDK/dpdk"
     url = "https://github.com/DPDK/dpdk/archive/v22.11.tar.gz"
-    git = "https://github.com/DPDK/dpdk"
+    # git = "https://github.com/DPDK/dpdk"
+    git = "https://github.com/hyoklee/dpdk"
     maintainers("hyoklee")
 
     version('main',  branch='main')
