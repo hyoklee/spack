@@ -43,7 +43,7 @@ class Daos(SConsPackage):
     depends_on('cart@daos-0.7', when='@0.7.0')
     depends_on('cart@daos-0.6', when='@0.6.0')
     depends_on('cmocka', type='build')
-    depends_on('dpdk')
+    depends_on('dpdk@main')
     depends_on('libfuse@3.6.1:')
     depends_on('hwloc@master')
     depends_on('go', type='build')    
