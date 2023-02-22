@@ -20,7 +20,7 @@ class Hdf5VolDaos(CMakePackage):
     version('1.2.0', sha256='b3b20e1ee625321a54b3c193be42f68c8ac3c4f127cee6d53cd39b8f230d567a')
 
     depends_on('cmake@2.8.12.2:', type='build')
-    depends_on('daos@2.0.0:')
+    depends_on('daos@master')
     depends_on('hdf5@1.14.0:+hl+mpi+map')
 
     def cmake_args(self):
