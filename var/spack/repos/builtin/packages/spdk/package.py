@@ -64,13 +64,15 @@ class Spdk(AutotoolsPackage):
             'uring',
            )
 
+    depends_on('dpdk@main')
     depends_on('nasm@2.12.02:', type='build')
     depends_on('fio@3.3', when='+fio')
     depends_on('meson')
     depends_on('numactl')
     depends_on('libaio')
     depends_on('py-pyelftools')
-    
+    depends_on('rdma-core', when='+rdma')
+               
     def configure_args(self):
         spec = self.spec
         config_args = [
