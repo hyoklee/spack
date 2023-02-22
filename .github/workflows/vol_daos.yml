@@ -1,10 +1,10 @@
-name: daos2
+name: hdf5-vol-daos
 
 on:
   push:
-    branches: [ develop- ]
+    branches: [ develop ]
   pull_request:
-    branches: [ develop- ]
+    branches: [ develop ]
   workflow_dispatch:
 
 jobs:
@@ -22,7 +22,8 @@ jobs:
     - name: Run a multi-line script
       run: |
         . ./share/spack/setup-env.sh
-        spack spec daos ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6
-        spack install -v --show-log-on-error daos \
+        spack spec hdf5-vol-daos \
+        ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6
+        spack install -v --show-log-on-error hdf5-vol-daos \
         ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6
 
