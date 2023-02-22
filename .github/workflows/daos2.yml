@@ -2,9 +2,9 @@ name: daos2
 
 on:
   push:
-    branches: [ develop- ]
+    branches: [ develop ]
   pull_request:
-    branches: [ develop- ]
+    branches: [ develop ]
   workflow_dispatch:
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
     - name: Run a multi-line script
       run: |
         . ./share/spack/setup-env.sh
-        spack spec daos2 ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6
-        spack install -v --show-log-on-error daos2 \
+        spack spec daos ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6
+        spack install -v --show-log-on-error daos \
         ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6
 
