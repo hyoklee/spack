@@ -17,7 +17,7 @@ class Hdf5VolDaos(CMakePackage):
                 'soumagne')
 
     version('master', branch='master', submodules=True)
-    version('1.2.0', sha256='b3b20e1ee625321a54b3c193be42f68c8ac3c4f127cee6d53cd39b8f230d567a')
+    version('1.2.0', sha256='669c1443605068f24c033783ef72619afcec4844902b3e0bffa19ddeea39779f')
 
     depends_on('cmake@2.8.12.2:', type='build')
     depends_on('daos@master')
