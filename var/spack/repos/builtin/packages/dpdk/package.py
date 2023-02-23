@@ -3,10 +3,13 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from spack.build_systems.makefile import MakefileBuilder
+from spack.build_systems.meson import MesonBuilder
+
 from spack.package import *
 
 
-class Dpdk(MesonPackage):
+class Dpdk(MakefilePackage, MesonPackage):
     """DPDK is a set of libraries and drivers for fast packet processing.
     It supports many processor architectures and both FreeBSD and Linux."""
 
@@ -25,12 +28,29 @@ class Dpdk(MesonPackage):
     version("19.02", sha256="04885d32c86fff5aefcfffdb8257fed405233602dbcd22f8298be13c2e285a50")
 
     conflicts("target=aarch64:", msg="DPDK is not supported on aarch64.")
+
+    # Build system
+    build_system(
+        conditional("meson", when="@22.11:"),
+        conditional("makefile", when="@:20.02"), default="meson"
+    )
     
-    depends_on('meson', type='build')
-    depends_on('ninja', type='build')
-    depends_on('py-pyelftools')    
+    with when("build_system=meson"):
+        depends_on("cmake@3.9:", type="build")
+        depends_on("ninja", type="build")
+        depends_on('py-pyelftools', when="@22.11:")    
     depends_on("numactl")
-    
+
+class MesonBuilder(MesonBuilder):
+
     def meson_args(self):
         return ['--warnlevel=3']
-    
+
+class MakefileBuilder(MakefileBuilder):
+
+    def build(self, pkg, spec, prefix):
+        make("defconfig")
+        make()
+
+    def install(self, pkg, spec, prefix):
+        install_tree(".", prefix)
