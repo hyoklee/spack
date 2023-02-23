@@ -32,10 +32,12 @@ class Hdf5VolDaos(CMakePackage):
         cmake_args = [
             define('BUILD_SHARED_LIBS', True),
             define('BUILD_TESTING', self.run_tests),
+            define('PC_DAOS_INCLUDEDIR', self.spec["daos"].prefix+'/include'),
+            define('PC_DAOS_LIBDIR', self.spec["daos"].prefix+'/lib64')
         ]
 
         return cmake_args
-
+    
     def setup_run_environment(self, env):
         env.prepend_path('HDF5_PLUGIN_PATH', self.prefix.lib)
 
