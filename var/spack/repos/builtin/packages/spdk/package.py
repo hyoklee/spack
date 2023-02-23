@@ -3,8 +3,9 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
 import os
+
+from spack import *
 
 
 class Spdk(AutotoolsPackage):
@@ -90,15 +91,10 @@ class Spdk(AutotoolsPackage):
 
     def configure_args(self):
         spec = self.spec
-        config_args = [
-            "--disable-tests",
-        ]
+        config_args = ["--disable-tests"]
 
         if spec.satisfies("@18.07:22.01.2"):
-            self.mods = self.mods + (
-                "reduce",
-                "isal",
-            )
+            self.mods = self.mods + ("reduce", "isal")
 
         if spec.satisfies("@21.07:"):
             config_args.append("--disable-unit-tests")
