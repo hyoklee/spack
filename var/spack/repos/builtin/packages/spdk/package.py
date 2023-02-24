@@ -28,19 +28,18 @@ class Spdk(AutotoolsPackage):
     variant("crypto", default=False, description="Build vbdev crypto module")
     variant("fio", default=False, description="Build fio plugin")
     variant("vhost", default=False, description="Build vhost target")
-    variant("virtio", default=False,
-            description="Build vhost initiator and virtio-pci bdev modules")
+    variant(
+        "virtio", default=False, description="Build vhost initiator and virtio-pci bdev modules"
+    )
     variant("pmdk", default=False, description="Build persistent memory bdev")
     variant("rbd", default=False, description="Build Ceph RBD bdev module")
-    variant("rdma", default=False,
-            description="Build RDMA transport for NVMf target and initiator")
+    variant(
+        "rdma", default=False, description="Build RDMA transport for NVMf target and initiator"
+    )
     variant("shared", default=False, description="Build spdk shared libraries")
-    variant("iscsi-initiator", default=False,
-            description="Build with iscsi bdev module")
-    variant("vtune", default=False,
-            description="Profile I/O under Intel VTune Amplifier XE")
-    variant("ocf", default=False,
-            description="Build OCF library and bdev module")
+    variant("iscsi-initiator", default=False, description="Build with iscsi bdev module")
+    variant("vtune", default=False, description="Profile I/O under Intel VTune Amplifier XE")
+    variant("ocf", default=False, description="Build OCF library and bdev module")
     variant("uring", default=False, description="Build I/O uring bdev")
 
     mods = (
@@ -68,9 +67,7 @@ class Spdk(AutotoolsPackage):
 
     def configure_args(self):
         spec = self.spec
-        config_args = ["--disable-tests",
-                       "--disable-unit-tests",
-                       "--disable-apps"]
+        config_args = ["--disable-tests", "--disable-unit-tests", "--disable-apps"]
 
         if "+fio" in spec:
             config_args.append("--with-fio={0}".format(spec["fio"].prefix))
@@ -85,26 +82,19 @@ class Spdk(AutotoolsPackage):
 
     @run_after("install")
     def install_additional_files(self):
-        spec = self.spec
         prefix = self.prefix
 
-        dpdk_build_dir = join_path(self.stage.source_path,
-                                   "dpdk", "build", "lib")
-        install_tree(
-            join_path(dpdk_build_dir, "pkgconfig"),
-            join_path(prefix.lib, "pkgconfig")
-        )
+        dpdk_build_dir = join_path(self.stage.source_path, "dpdk", "build", "lib")
+        install_tree(join_path(dpdk_build_dir, "pkgconfig"), join_path(prefix.lib, "pkgconfig"))
         for file in os.listdir(dpdk_build_dir):
             if os.path.isfile(join_path("dpdk", "build", "lib", file)):
                 install(join_path("dpdk", "build", "lib", file), prefix.lib)
-            mkdir(join_path(prefix.include, "dpdk"))
-            install_tree("dpdk/build/include",
-                         join_path(prefix.include, "dpdk"))
+        mkdir(join_path(prefix.include, "dpdk"))
+        install_tree("dpdk/build/include", join_path(prefix.include, "dpdk"))
 
         # Copy the config.h file, as some packages might require it.
         mkdir(prefix.share)
         mkdir(join_path(prefix.share, "spdk"))
-        install_tree("examples/nvme/fio_plugin",
-                     join_path(prefix.share, "spdk", "fio_plugin"))
+        install_tree("examples/nvme/fio_plugin", join_path(prefix.share, "spdk", "fio_plugin"))
         install_tree("include", join_path(prefix.share, "spdk", "include"))
         install_tree("scripts", join_path(prefix.share, "spdk", "scripts"))
