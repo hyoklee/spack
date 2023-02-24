@@ -25,12 +25,12 @@ class Daos(SConsPackage):
     depends_on("boost@develop+python", type="build")
     depends_on("cmocka", type="build")
     depends_on("dpdk@main")
-    depends_on("libfuse@3.6.1:")
-    depends_on("hwloc")
     depends_on("go", type="build")
+    depends_on("hwloc")
     depends_on("isa-l")
     depends_on("isa-l_crypto")
     depends_on("libfabric")
+    depends_on("libfuse@3.6.1:")
     depends_on("libuuid")
     depends_on("libunwind")
     depends_on("libyaml")
@@ -41,17 +41,16 @@ class Daos(SConsPackage):
     depends_on("protobuf-c")
     depends_on("py-distro")
     depends_on("readline")
-    depends_on("scons@4.4.0")
+    depends_on("scons@4.4.0:")
     depends_on("spdk+shared+rdma")
 
     def build_args(self, spec, prefix):
-        args = [
-            "PREFIX={0}".format(prefix),
-            "--build-deps=yes",
-            "--debug=explain,findlibs,includes",
-        ]
+        args = ["PREFIX={0}".format(prefix), "--build-deps=yes"]
 
-        # Construct ALT_PREFIX and make sure '/usr' is last.
+        if "+debug" in spec:
+            args.append("--debug=explain,findlibs,includes")
+
+        # Construct ALT_PREFIX and make sure that '/usr' is last.
         alt_prefix = [
             format(spec["argobots"].prefix),
             format(spec["boost"].prefix),
