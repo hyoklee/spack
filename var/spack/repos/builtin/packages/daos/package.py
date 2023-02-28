@@ -45,7 +45,8 @@ class Daos(SConsPackage):
     depends_on("spdk+shared+rdma")
 
     def build_args(self, spec, prefix):
-        args = ["PREFIX={0}".format(prefix), "--build-deps=yes"]
+        # args = ["PREFIX={0}".format(prefix), "--build-deps=yes"]
+        args = ["PREFIX={0}".format(prefix)]
 
         if "+debug" in spec:
             args.append("--debug=explain,findlibs,includes")
