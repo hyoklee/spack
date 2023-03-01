@@ -32,7 +32,7 @@ jobs:
         libfuse3-dev \
         libhwloc-dev \
         libibverbs-dev \
-        libipmctl-dev \        
+        libipmctl-dev \
         libjson-c-dev \
         liblz4-dev \
         libnuma-dev \
@@ -66,4 +66,3 @@ jobs:
         ^go@1.19.5 ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^spdk@23.01
         spack install -v --show-log-on-error daos \
         ^go@1.19.5 ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^spdk@23.01
-        
