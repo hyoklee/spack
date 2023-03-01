@@ -61,6 +61,6 @@ jobs:
     - name: Run a multi-line script
       run: |
         . ./share/spack/setup-env.sh
-        spack spec daos ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^spdk@22.01.2
-        spack install -v --show-log-on-error daos ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^spdk@22.01.2
+        spack spec daos ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^spdk@23.01
+        spack install -v --show-log-on-error daos ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^spdk@23.01
         
