@@ -46,8 +46,7 @@ class Daos(SConsPackage):
     depends_on("ucx")
 
     def build_args(self, spec, prefix):
-        # args = ["PREFIX={0}".format(prefix), "--build-deps=yes"]
-        args = ["PREFIX={0}".format(prefix)]
+        args = ["PREFIX={0}".format(prefix), "--build-deps=yes"]
 
         if "+debug" in spec:
             args.append("--debug=explain,findlibs,includes")
