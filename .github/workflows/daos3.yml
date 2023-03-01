@@ -1,4 +1,4 @@
-name: daos3 no build-deps
+name: daos apt install deps
 
 on:
   push:
@@ -32,6 +32,7 @@ jobs:
         libfuse3-dev \
         libhwloc-dev \
         libibverbs-dev \
+        libipmctl-dev \        
         libjson-c-dev \
         liblz4-dev \
         libnuma-dev \
