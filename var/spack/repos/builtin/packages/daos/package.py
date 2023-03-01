@@ -46,7 +46,8 @@ class Daos(SConsPackage):
     depends_on("ucx")
 
     def build_args(self, spec, prefix):
-        args = ["PREFIX={0}".format(prefix), "--build-deps=yes"]
+        # args = ["PREFIX={0}".format(prefix), "--build-deps=yes"]
+        args = ["PREFIX={0}".format(prefix)]
 
         if "+debug" in spec:
             args.append("--debug=explain,findlibs,includes")
@@ -70,6 +71,7 @@ class Daos(SConsPackage):
             format(spec["pmdk"].prefix),
             format(spec["protobuf-c"].prefix),
             format(spec["spdk"].prefix),
+            format(spec["ucx"].prefix),            
         ]
         alt_prefix_clean = []
         for i in alt_prefix:
