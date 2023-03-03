@@ -22,7 +22,7 @@ class Daos(SConsPackage):
     )
 
     depends_on("argobots")
-    depends_on("boost@develop+python", type="build")
+    depends_on("boost+python", type="build")
     depends_on("cmocka", type="build")
     depends_on("dpdk@main")
     depends_on("go", type="build")
