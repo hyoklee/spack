@@ -26,6 +26,7 @@ class Spdk(AutotoolsPackage):
     version("23.01", tag="v23.01", submodules=True)
 
     variant("crypto", default=False, description="Build vbdev crypto module")
+    variant("dpdk", default=False, description="Build with dpdk")
     variant("fio", default=False, description="Build fio plugin")
     variant("iscsi-initiator", default=False, description="Build with iscsi bdev module")
     variant("ocf", default=False, description="Build OCF library and bdev module")
