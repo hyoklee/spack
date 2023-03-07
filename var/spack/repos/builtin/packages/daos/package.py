@@ -21,6 +21,8 @@ class Daos(SConsPackage):
         "debug", default=False, description="Enable debugging info and strict compile warnings"
     )
 
+    patch("0001-LIBPATH-fix-for-ALT_PREFIX.2.patch", when="2.2.0:")
+
     depends_on("argobots")
     depends_on("boost+python", type="build")
     depends_on("cmocka", type="build")
