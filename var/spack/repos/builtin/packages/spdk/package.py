@@ -85,13 +85,13 @@ class Spdk(AutotoolsPackage):
     def install_additional_files(self):
         prefix = self.prefix
 
-        # dpdk_build_dir = join_path(self.stage.source_path, "dpdk", "build", "lib")
-        # install_tree(join_path(dpdk_build_dir, "pkgconfig"), join_path(prefix.lib, "pkgconfig"))
-        # for file in os.listdir(dpdk_build_dir):
-        #     if os.path.isfile(join_path("dpdk", "build", "lib", file)):
-        #         install(join_path("dpdk", "build", "lib", file), prefix.lib)
-        # mkdir(join_path(prefix.include, "dpdk"))
-        # install_tree("dpdk/build/include", join_path(prefix.include, "dpdk"))
+        dpdk_build_dir = join_path(self.stage.source_path, "dpdk", "build", "lib")
+        install_tree(join_path(dpdk_build_dir, "pkgconfig"), join_path(prefix.lib, "pkgconfig"))
+        for file in os.listdir(dpdk_build_dir):
+            if os.path.isfile(join_path("dpdk", "build", "lib", file)):
+                install(join_path("dpdk", "build", "lib", file), prefix.lib)
+        mkdir(join_path(prefix.include, "dpdk"))
+        install_tree("dpdk/build/include", join_path(prefix.include, "dpdk"))
 
         # Copy the config.h file, as some packages might require it.
         mkdir(prefix.share)
