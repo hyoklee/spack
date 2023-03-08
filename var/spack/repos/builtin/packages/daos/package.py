@@ -72,7 +72,7 @@ class Daos(SConsPackage):
             format(spec["pmdk"].prefix),
             format(spec["protobuf-c"].prefix),
             format(spec["spdk"].prefix),
-            format(spec["ucx"].prefix),            
+            format(spec["ucx"].prefix),
         ]
         alt_prefix_clean = []
         for i in alt_prefix:
