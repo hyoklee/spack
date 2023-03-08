@@ -1,10 +1,10 @@
-name: spdk~vhost+virtio
+name: spdk~vhost+virtio+dpdk
 
 on:
   push:
-    branches: [ develop- ]
+    branches: [ develop ]
   pull_request:
-    branches: [ develop- ]
+    branches: [ develop ]
   workflow_dispatch:
 
 jobs:
@@ -20,5 +20,5 @@ jobs:
     - name: Run a multi-line script
       run: |
         . ./share/spack/setup-env.sh
-        spack spec spdk~vhost+virtio
-        spack install -v --show-log-on-error spdk~vhost+virtio
+        spack spec spdk+shared+rdma+dpdk ^dpdk@main
+        spack install -v --show-log-on-error spdk+shared+rdma+dpdk ^dpdk@main
