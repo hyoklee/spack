@@ -87,7 +87,7 @@ class Spdk(AutotoolsPackage):
         prefix = self.prefix
 
         dpdk_build_dir = join_path(self.stage.source_path, "dpdk", "build", "lib")
-        mkdir(dpdk_build_dir)
+        mkdirs(dpdk_build_dir)
         mkdir(join_path(dpdk_build_dir, "pkgconfig"))
         install_tree(join_path(dpdk_build_dir, "pkgconfig"), join_path(prefix.lib, "pkgconfig"))
         for file in os.listdir(dpdk_build_dir):
