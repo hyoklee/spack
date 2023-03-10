@@ -86,17 +86,16 @@ class Spdk(AutotoolsPackage):
     def install_additional_files(self):
         spec = self.spec
         prefix = self.prefix
-
-        # dpdk_build_dir = join_path(self.stage.source_path, "dpdk", "build", "lib")
         dpdk_build_dir = join_path(spec["dpdk"].prefix, "lib")    
-        # os.mkdirs(dpdk_build_dir)
-        # mkdir(join_path(dpdk_build_dir, "pkgconfig"))
+
         install_tree(join_path(dpdk_build_dir, "pkgconfig"), join_path(prefix.lib, "pkgconfig"))
+
         for file in os.listdir(dpdk_build_dir):
-            # if os.path.isfile(join_path("dpdk", "build", "lib", file)):
-            if os.path.isfile(file):
-                # install(join_path("dpdk", "build", "lib", file), prefix.lib)
-                install(file, prefix.lib)
+            f = join_path(dpdk_build_dir, file)
+            print(f)
+            if os.path.isfile(f):
+                install(f, prefix.lib)
+
         mkdir(join_path(prefix.include, "dpdk"))
         install_tree(join_path(spec["dpdk"].prefix, "include"), join_path(prefix.include, "dpdk"))
 
