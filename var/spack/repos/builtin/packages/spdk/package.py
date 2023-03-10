@@ -86,7 +86,7 @@ class Spdk(AutotoolsPackage):
     def install_additional_files(self):
         spec = self.spec
         prefix = self.prefix
-        dpdk_build_dir = join_path(spec["dpdk"].prefix, "lib")    
+        dpdk_build_dir = join_path(spec["dpdk"].prefix, "lib")
 
         install_tree(join_path(dpdk_build_dir, "pkgconfig"), join_path(prefix.lib, "pkgconfig"))
 
