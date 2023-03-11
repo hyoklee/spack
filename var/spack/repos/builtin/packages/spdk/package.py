@@ -103,7 +103,7 @@ class Spdk(AutotoolsPackage):
         spec = self.spec
         prefix = self.prefix
         if "+dpdk" in spec:
-            install_dpdk_files()
+            self.install_dpdk_files()
         # Copy the config.h file, as some packages might require it.
         mkdir(prefix.share)
         mkdir(join_path(prefix.share, "spdk"))
