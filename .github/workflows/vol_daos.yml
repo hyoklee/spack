@@ -23,7 +23,7 @@ jobs:
       run: |
         . ./share/spack/setup-env.sh
         spack spec hdf5-vol-daos \
-        ^dpdk@22.11.1 ^go@1.19.5 ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6 
+        ^dpdk@main ^go@1.19.5 ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6 
         spack install -v --show-log-on-error hdf5-vol-daos \
-        ^dpdk@22.11.1 ^go@1.19.5 ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6
+        ^dpdk@main ^go@1.19.5 ^protobuf-c@1.4.1 ^protobuf@3.21.12 ^python@3.10.6
 
