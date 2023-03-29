@@ -14,12 +14,14 @@ class Dpdk(MakefilePackage, MesonPackage):
     It supports many processor architectures and both FreeBSD and Linux."""
 
     homepage = "https://github.com/DPDK/dpdk"
-    url = "https://github.com/DPDK/dpdk/archive/v22.11.tar.gz"
+    # url = "https://github.com/DPDK/dpdk/archive/v22.11.tar.gz"
+    url = "http://fast.dpdk.org/rel/dpdk-22.11.1.tar.xz"
     # git = "https://github.com/DPDK/dpdk"
     git = "https://github.com/hyoklee/dpdk"
     maintainers("hyoklee")
 
     version('main',  branch='main')
+    version('22.11.1', sha256='de076465f7174a0d52714b9072e4837a726baac82d8fe7dc644cad5c8cf74d4c')
     version("22.11", sha256="ed8b2a2b153f0311ffa065d35af29a098367af44a22b3c33e191e1a74211f2e3")
     version("20.02", sha256="29e56ea8e47e30110ecb881fa5a37125a865dd2d45b61f68e93e334caaab16b7")
     version("19.11", sha256="ce1befb20a5e5c5399b326a39cfa23314a5229c0ced2553f53b09b1ae630706b")
