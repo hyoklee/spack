@@ -24,6 +24,7 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
 
     maintainers("mwkrentel")
 
+    version("0.189", sha256="39bd8f1a338e2b7cd4abc3ff11a0eddc6e690f69578a57478d8179b4148708c8")
     version("0.188", sha256="fb8b0e8d0802005b9a309c60c1d8de32dd2951b56f0c3a3cb56d21ce01595dff")
     version("0.187", sha256="e70b0dfbe610f90c4d1fe0d71af142a4e25c3c4ef9ebab8d2d72b65159d454c8")
     version("0.186", sha256="7f6fb9149b1673d38d9178a0d3e0fb8a1ec4f53a9f4c2ff89469609879641177")
@@ -72,10 +73,11 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
     depends_on("zlib", type="link")
     depends_on("gettext", when="+nls")
     depends_on("m4", type="build")
+    depends_on("pkgconfig@0.9.0:", type=("build", "link"))
 
     # debuginfod has extra dependencies
-    # NB: Waiting on an elfutils patch before we can use libmicrohttpd@0.9.71
-    depends_on("libmicrohttpd@0.9.33:0.9.70", type="link", when="+debuginfod")
+    # NB: Waiting on an elfutils patch before we can use libmicrohttpd@0.9.51
+    depends_on("libmicrohttpd@0.9.33:0.9.50", type="link", when="+debuginfod")
     depends_on("libarchive@3.1.2:", type="link", when="+debuginfod")
     depends_on("sqlite@3.7.17:", type="link", when="+debuginfod")
     depends_on("curl@7.29.0:", type="link", when="+debuginfod")
@@ -83,6 +85,11 @@ class Elfutils(AutotoolsPackage, SourcewarePackage):
     conflicts("%gcc@7.2.0:", when="@0.163")
 
     provides("elf@1")
+
+    # libarchive with iconv doesn't configure.
+    # see https://github.com/spack/spack/issues/36710
+    # and https://github.com/libarchive/libarchive/issues/1819
+    conflicts("^libarchive@3.6.2 +iconv", when="+debuginfod")
 
     # Elfutils uses nested functions in C code, which is implemented
     # in gcc, but not in clang. C code compiled with gcc is

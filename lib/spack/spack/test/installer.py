@@ -24,8 +24,6 @@ import spack.spec
 import spack.store
 import spack.util.lock as lk
 
-is_windows = sys.platform == "win32"
-
 
 def _mock_repo(root, namespace):
     """Create an empty repository at the specified root
@@ -252,6 +250,54 @@ def test_installer_str(install_mockery):
     assert "#tasks=0" in istr
     assert "installed (0)" in istr
     assert "failed (0)" in istr
+
+
+def test_installer_prune_built_build_deps(install_mockery, monkeypatch, tmpdir):
+    r"""
+    Ensure that build dependencies of installed deps are pruned
+    from installer package queues.
+
+               (a)
+              /   \
+             /     \
+           (b)     (c) <--- is installed already so we should
+              \   / | \     prune (f) from this install since
+               \ /  |  \    it is *only* needed to build (b)
+               (d) (e) (f)
+
+    Thus since (c) is already installed our build_pq dag should
+    only include four packages. [(a), (b), (c), (d), (e)]
+    """
+
+    @property
+    def _mock_installed(self):
+        return self.name in ["c"]
+
+    # Mock the installed property to say that (b) is installed
+    monkeypatch.setattr(spack.spec.Spec, "installed", _mock_installed)
+
+    # Create mock repository with packages (a), (b), (c), (d), and (e)
+    builder = spack.repo.MockRepositoryBuilder(tmpdir.mkdir("mock-repo"))
+
+    builder.add_package("a", dependencies=[("b", "build", None), ("c", "build", None)])
+    builder.add_package("b", dependencies=[("d", "build", None)])
+    builder.add_package(
+        "c", dependencies=[("d", "build", None), ("e", "all", None), ("f", "build", None)]
+    )
+    builder.add_package("d")
+    builder.add_package("e")
+    builder.add_package("f")
+
+    with spack.repo.use_repositories(builder.root):
+        const_arg = installer_args(["a"], {})
+        installer = create_installer(const_arg)
+
+        installer._init_queue()
+
+        # Assert that (c) is not in the build_pq
+        result = set([task.pkg_id[0] for _, task in installer.build_pq])
+        expected = set(["a", "b", "c", "d", "e"])
+        assert result == expected
 
 
 def test_check_before_phase_error(install_mockery):
@@ -528,7 +574,7 @@ def test_dump_packages_deps_errs(install_mockery, tmpdir, monkeypatch, capsys):
 
     # The call to install_tree will raise the exception since not mocking
     # creation of dependency package files within *install* directories.
-    with pytest.raises(IOError, match=path if not is_windows else ""):
+    with pytest.raises(IOError, match=path if sys.platform != "win32" else ""):
         inst.dump_packages(spec, path)
 
     # Now try the error path, which requires the mock directory structure
@@ -879,7 +925,7 @@ def test_setup_install_dir_grp(install_mockery, monkeypatch, capfd):
     metadatadir = spack.store.layout.metadata_path(spec)
     # Regex matching with Windows style paths typically fails
     # so we skip the match check here
-    if is_windows:
+    if sys.platform == "win32":
         metadatadir = None
     # Should fail with a "not a directory" error
     with pytest.raises(OSError, match=metadatadir):
