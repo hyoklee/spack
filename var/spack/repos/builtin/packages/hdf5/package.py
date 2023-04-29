@@ -299,7 +299,7 @@ class Hdf5(CMakePackage):
 
     patch("fortran-kinds.patch", when="@1.10.7")
 
-    # This patch may only be needed with GCC11.2 on macOS, but it's valid for
+    # This patch may only be needed with GCC 11.2 on macOS, but it's valid for
     # any of the head HDF5 versions as of 12/2021. Since it's impossible to
     # tell what Fortran version is part of a mixed apple-clang toolchain on
     # macOS (which is the norm), and this might be an issue for other compilers
@@ -598,13 +598,13 @@ class Hdf5(CMakePackage):
         if "+mpi" in spec and "msmpi" not in spec:
             args.extend(
                 [
-                    "-DMPI_CXX_COMPILER:PATH=%s" % spec["mpi"].mpicxx,
-                    "-DMPI_C_COMPILER:PATH=%s" % spec["mpi"].mpicc,
+                    "-DCMAKE_MPI_CXX_COMPILER:PATH=%s" % spec["mpi"].mpicxx,
+                    "-DCMAKE_MPI_C_COMPILER:PATH=%s" % spec["mpi"].mpicc,
                 ]
             )
 
             if "+fortran" in spec:
-                args.extend(["-DMPI_Fortran_COMPILER:PATH=%s" % spec["mpi"].mpifc])
+                args.extend(["-DCMAKE_MPI_Fortran_COMPILER:PATH=%s" % spec["mpi"].mpifc])
 
         # work-around for https://github.com/HDFGroup/hdf5/issues/1320
         if spec.satisfies("@1.10.8,1.13.0"):
