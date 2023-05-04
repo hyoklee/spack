@@ -1,4 +1,4 @@
-name: ubuntu hdf5@develop+mpi+fortran
+name: ubuntu hdf5 ^mpitrampoline
 
 on:
   push:
