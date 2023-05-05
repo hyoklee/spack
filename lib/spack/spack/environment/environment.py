@@ -18,8 +18,6 @@ import urllib.request
 import warnings
 from typing import Any, Dict, List, Optional, Union
 
-import ruamel.yaml as yaml
-
 import llnl.util.filesystem as fs
 import llnl.util.tty as tty
 import llnl.util.tty.color as clr
@@ -357,7 +355,14 @@ def ensure_env_root_path_exists():
 
 def config_dict(yaml_data):
     """Get the configuration scope section out of an spack.yaml"""
+    # TODO (env:): Remove env: as a possible top level keyword in v0.21
     key = spack.config.first_existing(yaml_data, spack.schema.env.keys)
+    if key == "env":
+        msg = (
+            "using 'env:' as a top-level attribute of a Spack environment is deprecated and "
+            "will be removed in Spack v0.21. Please use 'spack:' instead."
+        )
+        warnings.warn(msg)
     return yaml_data[key]
 
 
@@ -519,11 +524,6 @@ class ViewDescriptor:
     def to_dict(self):
         ret = syaml.syaml_dict([("root", self.raw_root)])
         if self.projections:
-            # projections guaranteed to be ordered dict if true-ish
-            # for python2.6, may be syaml or ruamel.yaml implementation
-            # so we have to check for both
-            types = (collections.OrderedDict, syaml.syaml_dict, yaml.comments.CommentedMap)
-            assert isinstance(self.projections, types)
             ret["projections"] = self.projections
         if self.select:
             ret["select"] = self.select
@@ -2606,8 +2606,8 @@ class EnvironmentManifestFile(collections.abc.Mapping):
         Args:
             user_spec: user spec to be appended
         """
-        config_dict(self.pristine_yaml_content)["specs"].append(user_spec)
-        config_dict(self.yaml_content)["specs"].append(user_spec)
+        config_dict(self.pristine_yaml_content).setdefault("specs", []).append(user_spec)
+        config_dict(self.yaml_content).setdefault("specs", []).append(user_spec)
         self.changed = True
 
     def remove_user_spec(self, user_spec: str) -> None:
