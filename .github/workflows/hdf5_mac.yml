@@ -17,5 +17,5 @@ jobs:
       run: |
         . ./share/spack/setup-env.sh
         spack spec hdf5@1.12.2+mpi+fortran
-        spack install hdf5@1.12.2+mpi+fortran
+        spack install -v hdf5@1.12.2+mpi+fortran
       
