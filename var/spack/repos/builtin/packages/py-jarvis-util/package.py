@@ -13,7 +13,9 @@ class PyJarvisUtil(PythonPackage):
     and various other random utilities."""
 
     homepage = "https://github.com/scs-lab/jarvis-util"
+    git = "https://github.com/scs-lab/jarvis-util.git"
     url = "https://github.com/scs-lab/jarvis-util/archive/refs/tags/v0.0.1.tar.gz"
+    maintainers("lukemartinlogan", "hyoklee")
 
     version("0.0.1", sha256="1c5fbbfec410f1df8dc28edc87dd4421c3708f5bd22bf7ef010138d5c4a1ff8f")
 
