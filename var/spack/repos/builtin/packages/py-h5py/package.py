@@ -62,10 +62,9 @@ class PyH5py(PythonPackage):
 
     # Link dependencies (py-h5py v2 cannot build against HDF5 1.12 regardless
     # of API setting)
-    depends_on("hdf5@develop-1.15 +hl", when="@master")
-    # depends_on("hdf5@1.8.4:1.11 +hl", when="@:2")
-    # depends_on("hdf5@1.8.4:1.12 +hl", when="@3:3.7")
-    # depends_on("hdf5@1.8.4:1.14 +hl", when="@3.8:")
+    depends_on("hdf5@1.8.4:1.11 +hl", when="@:2")
+    depends_on("hdf5@1.8.4:1.12 +hl", when="@3:3.7")
+    depends_on("hdf5@1.8.4: +hl", when="@3.8:")
 
         
     # MPI dependencies
