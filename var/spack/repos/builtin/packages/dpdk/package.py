@@ -49,7 +49,7 @@ class MesonBuilder(MesonBuilder):
         return ["--warnlevel=3"]
     def setup_build_environment(self, env):
         if self.spec.satisfies("%gcc@10:"):
-            env.set("CFLAGS", "-fno-array-bounds-check")
+            env.set("CFLAGS", "-fno-bounds-check")
 
 
 class MakefileBuilder(MakefileBuilder):
