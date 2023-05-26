@@ -43,9 +43,13 @@ class Dpdk(MakefilePackage, MesonPackage):
     depends_on("numactl")
 
 
+
 class MesonBuilder(MesonBuilder):
     def meson_args(self):
         return ["--warnlevel=3"]
+    def setup_build_environment(self, env):
+        if self.spec.satisfies("%gcc@10:"):
+            env.set("CFLAGS", "-fno-array-bounds-check")
 
 
 class MakefileBuilder(MakefileBuilder):

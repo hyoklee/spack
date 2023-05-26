@@ -2,9 +2,9 @@ name: hdf5-vol-daos
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop- ]
   pull_request:
-    branches: [ develop ]
+    branches: [ develop- ]
   workflow_dispatch:
 
 jobs:

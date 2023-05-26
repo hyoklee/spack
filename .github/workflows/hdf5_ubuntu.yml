@@ -2,9 +2,9 @@ name: ubuntu hdf5@1.12.2+mpi+fortran
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop- ]
   pull_request:
-    branches: [ develop ]
+    branches: [ develop- ]
   workflow_dispatch:
     
 jobs:
