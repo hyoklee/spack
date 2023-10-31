@@ -329,10 +329,6 @@ class Hdf5(CMakePackage):
     )
 
     patch("fortran-kinds.patch", when="@1.10.7")
-    patch("fortran-kinds-2.patch", when="@1.12.0")
-    patch("mpi.patch", when="@1.12")
-    patch("mpi-perf.patch", when="@1.12.2")
-    patch("mpi.14.patch", when="@1.14:")
 
     # This patch may only be needed with GCC 11.2 on macOS, but it's valid for
     # any of the head HDF5 versions as of 12/2021. Since it's impossible to
@@ -348,9 +344,6 @@ class Hdf5(CMakePackage):
     # find_package(MPI).  This patch does that for them.  Later HDF5 versions
     # will include the patch code changes.
     patch("hdf5_1_14_0_config_find_mpi.patch", when="@1.14.0")
-
-    # Avoid clang errors (clang checks strict C compliance)
-    patch("clang.patch", when="@1.8.21 %clang")
 
     # The argument 'buf_size' of the C function 'h5fget_file_image_c' is
     # declared as intent(in) though it is modified by the invocation. As a
@@ -615,7 +608,6 @@ class Hdf5(CMakePackage):
                 # are enabled but the tests are disabled.
                 spec.satisfies("@1.8.22+shared+tools"),
             ),
-            self.define_from_variant("HDF5_ENABLE_SUBFILING_VFD", "subfiling"),
             self.define_from_variant("HDF5_ENABLE_MAP_API", "map"),
             self.define("HDF5_ENABLE_Z_LIB_SUPPORT", True),
             self.define_from_variant("HDF5_ENABLE_SZIP_SUPPORT", "szip"),
@@ -641,13 +633,13 @@ class Hdf5(CMakePackage):
         if "+mpi" in spec and "msmpi" not in spec:
             args.extend(
                 [
-                    "-DCMAKE_MPI_CXX_COMPILER:PATH=%s" % spec["mpi"].mpicxx,
-                    "-DCMAKE_MPI_C_COMPILER:PATH=%s" % spec["mpi"].mpicc,
+                    "-DMPI_CXX_COMPILER:PATH=%s" % spec["mpi"].mpicxx,
+                    "-DMPI_C_COMPILER:PATH=%s" % spec["mpi"].mpicc,
                 ]
             )
 
             if "+fortran" in spec:
-                args.extend(["-DCMAKE_MPI_Fortran_COMPILER:PATH=%s" % spec["mpi"].mpifc])
+                args.extend(["-DMPI_Fortran_COMPILER:PATH=%s" % spec["mpi"].mpifc])
 
         # work-around for https://github.com/HDFGroup/hdf5/issues/1320
         if spec.satisfies("@1.10.8,1.13.0"):
