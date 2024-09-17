@@ -1,11 +1,15 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+import concurrent.futures
 import multiprocessing
 import os
 import sys
 import traceback
+from typing import Optional
+
+from spack.util.cpus import determine_number_of_jobs
 
 
 class ErrorFromWorker:
@@ -53,7 +57,9 @@ class Task:
         return value
 
 
-def imap_unordered(f, list_of_args, *, processes: int, debug=False):
+def imap_unordered(
+    f, list_of_args, *, processes: int, maxtaskperchild: Optional[int] = None, debug=False
+):
     """Wrapper around multiprocessing.Pool.imap_unordered.
 
     Args:
@@ -62,6 +68,8 @@ def imap_unordered(f, list_of_args, *, processes: int, debug=False):
         processes: maximum number of processes allowed
         debug: if False, raise an exception containing just the error messages
             from workers, if True an exception with complete stacktraces
+        maxtaskperchild: number of tasks to be executed by a child before being
+            killed and substituted
 
     Raises:
         RuntimeError: if any error occurred in the worker processes
@@ -70,8 +78,29 @@ def imap_unordered(f, list_of_args, *, processes: int, debug=False):
         yield from map(f, list_of_args)
         return
 
-    with multiprocessing.Pool(processes) as p:
+    with multiprocessing.Pool(processes, maxtasksperchild=maxtaskperchild) as p:
         for result in p.imap_unordered(Task(f), list_of_args):
             if isinstance(result, ErrorFromWorker):
                 raise RuntimeError(result.stacktrace if debug else str(result))
             yield result
+
+
+class SequentialExecutor(concurrent.futures.Executor):
+    """Executor that runs tasks sequentially in the current thread."""
+
+    def submit(self, fn, *args, **kwargs):
+        """Submit a function to be executed."""
+        future = concurrent.futures.Future()
+        try:
+            future.set_result(fn(*args, **kwargs))
+        except Exception as e:
+            future.set_exception(e)
+        return future
+
+
+def make_concurrent_executor() -> concurrent.futures.Executor:
+    """Can't use threading because it's unsafe, and can't use spawned processes because of globals.
+    That leaves only forking."""
+    if multiprocessing.get_start_method() == "fork":
+        return concurrent.futures.ProcessPoolExecutor(determine_number_of_jobs(parallel=True))
+    return SequentialExecutor()

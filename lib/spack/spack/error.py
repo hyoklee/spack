@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -132,3 +132,15 @@ class UnsatisfiableSpecError(SpecError):
 
 class FetchError(SpackError):
     """Superclass for fetch-related errors."""
+
+
+class NoSuchPatchError(SpackError):
+    """Raised when a patch file doesn't exist."""
+
+
+class PatchDirectiveError(SpackError):
+    """Raised when the wrong arguments are suppled to the patch directive."""
+
+
+class PatchLookupError(NoSuchPatchError):
+    """Raised when a patch file cannot be located from sha256."""
