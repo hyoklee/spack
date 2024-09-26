@@ -180,7 +180,7 @@ class FilesystemView:
 
         # Setup link function to include view
         self.link_type = link_type
-        self.link = ft.partial(function_for_link_type(link_type), view=self)
+        self.link = ft.partial(function_for_link_type(link_type))
 
     def add_specs(self, *specs, **kwargs):
         """
