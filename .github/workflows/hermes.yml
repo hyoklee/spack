@@ -1,0 +1,23 @@
+name: hermes
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+  workflow_dispatch:
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout spack
+      uses: actions/checkout@v4
+    - name: spack install hermes
+      run: |
+        . ./share/spack/setup-env.sh
+        spack compiler find
+        spack external find
+        spack spec hermes
+        spack install hermes
+
