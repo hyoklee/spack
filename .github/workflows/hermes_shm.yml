@@ -2,9 +2,9 @@ name: hermes_shm
 
 on:
   push:
-    branches: [ develop- ]
+    branches: [ develop ]
   pull_request:
-    branches: [ develop- ]
+    branches: [ develop ]
   workflow_dispatch:
     
 jobs:
@@ -13,10 +13,10 @@ jobs:
     steps:
     - name: Checkout spack
       uses: actions/checkout@v4
-    - name: spack install hermes_shm
+    - name: spack install hermes-shm
       run: |
         . ./share/spack/setup-env.sh
         spack compiler find
         spack external find
-        spack spec hermes_shm
-        spack install hermes_shm
+        spack spec hermes-shm
+        spack install hermes-shm
