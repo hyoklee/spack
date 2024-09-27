@@ -66,9 +66,8 @@ class Hermes(CMakePackage):
 
     variant("adios", default=False, description="Build Adios tests")
     variant("ares", default=False, description="Enable full libfabric install")
-    variant("compress", default=False, description="Build Adios tests")
-    variant("debug", default=False, description="Build shared libraries")
-    variant("encrypt", default=False, description="Build Adios tests")
+    variant("compress", default=False, description="Enable compression")
+    variant("encrypt", default=False, description="Enable encryption")
     variant("mpiio", default=True, description="Enable MPI I/O adapter")
     variant("python", default=False, description="Build Python Wrapper")
     variant("stdio", default=True, description="Enable STDIO adapter")
@@ -84,7 +83,6 @@ class Hermes(CMakePackage):
     depends_on("hermes-shm+adios", when="+adios")
     depends_on("hermes-shm+ares", when="+ares")
     depends_on("hermes-shm+compress", when="+compress")
-    depends_on("hermes-shm+debug", when="+debug")
     depends_on("hermes-shm+encrypt", when="+encrypt")
     depends_on("hermes-shm+mpiio", when="+mpiio")
     depends_on("hermes-shm+vfd", when="+vfd")
@@ -94,10 +92,6 @@ class Hermes(CMakePackage):
 
     def cmake_args(self):
         args = []
-        if "+debug" in self.spec:
-            args.append("-DCMAKE_BUILD_TYPE=Debug")
-        else:
-            args.append("-DCMAKE_BUILD_TYPE=Release")
         if "+mpiio" in self.spec:
             args.append("-DHERMES_ENABLE_MPIIO_ADAPTER=ON")
             if "openmpi" in self.spec:
