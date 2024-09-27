@@ -20,4 +20,4 @@ jobs:
         spack external find
         spack spec hermes
         spack install hermes
-
+        spack test run hermes
