@@ -1,4 +1,4 @@
-name: hermes_shm
+name: hermes-shm
 
 on:
   push:
