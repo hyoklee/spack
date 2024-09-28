@@ -18,7 +18,7 @@ class HermesShm(CMakePackage):
     version("master", branch="master")
     version(
         "1.1.0",
-        url="https://github.com/lukemartinlogan/hermes_shm/archive/refs/tags/v1.1.0.tar.gz",
+        url="https://github.com/grc-iit/hermes-shm/archive/refs/tags/v1.1.0.tar.gz",
         sha256="080d5361cff22794b670e4544c532926ca8b6d6ec695af25596efe035bfffea5",
     )
     version(
