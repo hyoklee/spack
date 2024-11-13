@@ -23,41 +23,7 @@ class Hermes(CMakePackage):
         url="https://github.com/HDFGroup/hermes/archive/refs/tags/v1.2.1.tar.gz",
         sha256="d60ee5d6856dc1a1f389fb08f61252cc7736d1c38d3049043749640897fe3b6d",
     )
-    version(
-        "1.2.0",
-        url="https://github.com/HDFGroup/hermes/archive/refs/tags/v1.2.0.tar.gz",
-        sha256="280379f393695462279c1af11371995d134f33998596812bd960d6f44a86c339",
-    )
-    version(
-        "1.1.0",
-        url="https://github.com/HDFGroup/hermes/archive/refs/tags/v1.1.0.tar.gz",
-        sha256="022df20d9e394754f6126dfcedd845afde879fcb2738d763f53657e59e058c1e",
-    )
-    version(
-        "1.0.5-beta",
-        url="https://github.com/HDFGroup/hermes/archive/refs/tags/v1.0.5-beta.tar.gz",
-        sha256="1f3ba51a8beda4bc1314d6541b800de1525f5e233a6f498fcde6dc43562ddcb7",
-    )
-    version(
-        "1.0.0-beta",
-        url="https://github.com/HDFGroup/hermes/archive/refs/tags/v1.0.0-beta.tar.gz",
-        sha256="301084cced32aa00532ab4bebd638c31b0512c881ffab20bf5da4b7739defac2",
-    )
-    version(
-        "0.9.9-beta",
-        url="https://github.com/HDFGroup/hermes/archive/refs/tags/v0.9.9-beta.tar.gz",
-        sha256="d2e0025a9bd7a3f05d3ab608c727ed15d86ed30cf582549fe996875daf6cb649",
-    )
-    version(
-        "0.9.8-beta",
-        url="https://github.com/HDFGroup/hermes/archive/refs/tags/v0.9.8-beta.tar.gz",
-        sha256="68e9a977c25c53dcab7d7f6ef0df96b2ba4a09a06aa7c4a490c67faa2a78f077",
-    )
-    version(
-        "0.9.5-beta",
-        url="https://github.com/HDFGroup/hermes/archive/refs/tags/v0.9.5-beta.tar.gz",
-        sha256="f48d15591a6596e8e54897362ec2591bc71e5de92933651f4768145e256336ca",
-    )
+
     version(
         "0.9.0-beta",
         url="https://github.com/HDFGroup/hermes/archive/refs/tags/v0.9.0-beta.tar.gz",
@@ -69,13 +35,15 @@ class Hermes(CMakePackage):
     variant("compress", default=False, description="Enable compression")
     variant("encrypt", default=False, description="Enable encryption")
     variant("mpiio", default=True, description="Enable MPI I/O adapter")
-    variant("python", default=False, description="Build Python Wrapper")
+    # Builds with hermes@master. 1.2.1, we'd need to extract pybind11 source in external/pybind11:
+    variant("python", default=False, description="Build Python Wrapper", when="@master")
     variant("stdio", default=True, description="Enable STDIO adapter")
     variant("vfd", default=False, description="Enable HDF5 VFD")
     variant("zmq", default=False, description="Build ZeroMQ tests")
 
-    depends_on("c", type="build")  # generated
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("pkgconfig", type="build")
     depends_on("libelf")
 
     depends_on("hermes-shm@master+boost+cereal+mochi")
@@ -90,14 +58,20 @@ class Hermes(CMakePackage):
 
     depends_on("py-jarvis-util", type="test")
 
+    depends_on("mpi", when="+mpiio")
+    conflicts("^[virtuals=mpi] nvhpc", when="+mpiio", msg="+mpio does not support nvhpc MPI")
+
     def cmake_args(self):
         args = []
         if "+mpiio" in self.spec:
             args.append("-DHERMES_ENABLE_MPIIO_ADAPTER=ON")
-            if "openmpi" in self.spec:
+            mpi_name = self.spec["mpi"].name
+            if mpi_name == "openmpi":
                 args.append("-DHERMES_OPENMPI=ON")
-            elif "mpich" in self.spec:
+            elif mpi_name == "mpich":
                 args.append("-DHERMES_MPICH=ON")
+            else:
+                raise InstallError("hermes+mpiio needs openmpi or mpich, got " + mpi_name)
         if "+stdio" in self.spec:
             args.append("-DHERMES_ENABLE_STDIO_ADAPTER=ON")
         if "+vfd" in self.spec:

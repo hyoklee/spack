@@ -85,6 +85,7 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
         description="build openmp support",
     )
     variant("tbb", default=(sys.platform == "darwin"), description="build TBB support")
+    variant("sycl", default=False, description="Build with SYCL backend")
 
     depends_on("cmake@3.12:", type="build")  # CMake >= 3.12
     depends_on("cmake@3.18:", when="+rocm", type="build")  # CMake >= 3.18
@@ -132,6 +133,13 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
     conflicts("+rocm", when="~kokkos", msg="VTK-m does not support HIP without Kokkos")
     conflicts("+rocm", when="+virtuals", msg="VTK-m does not support virtual functions with ROCm")
 
+    # VTK-m uses the Kokkos SYCL backend.
+    # If Kokkos provides multiple backends, the SYCL backend may or
+    # may not be used for VTK-m depending on the default selected by Kokkos
+    depends_on("kokkos +sycl", when="+kokkos +sycl")
+
+    conflicts("+sycl", when="~kokkos", msg="VTK-m does not support SYCL without Kokkos")
+
     # Can build +shared+cuda after @1.7:
     conflicts("+shared", when="@:1.6 +cuda_native")
     conflicts("+cuda~cuda_native~kokkos", msg="Cannot have +cuda without a cuda device")
@@ -162,12 +170,26 @@ class VtkM(CMakePackage, CudaPackage, ROCmPackage):
     # https://gitlab.kitware.com/vtk/vtk-m/-/merge_requests/3259
     patch("mr3259-thrust-is_arithmetic-fix.patch", when="@2.0.0:2.2.0 +cuda ^cuda@12.6:")
 
+    # VTK-m PR#3271
+    # https://gitlab.kitware.com/vtk/vtk-m/-/merge_requests/3271
+    patch("mr3271-contourtree-print-error.patch", when="@2.0:2.2")
+
+    # VTK-m PR#3272
+    # https://gitlab.kitware.com/vtk/vtk-m/-/merge_requests/3272
+    patch("mr3272-bad-mir-table-method.patch", when="@2.0:2.2")
+
     # Disable Thrust patch that is no longer needed in modern Thrust
     patch(
         "https://github.com/Kitware/VTK-m/commit/4a4466e7c8cd44d2be2bd3fe6f359faa8e9547aa.patch?full_index=1",
         sha256="58dc104ba05ec99c359eeec3ac094cdb071053a4250f4ad9d72ef6a356c4346e",
         when="@1.6.0:2.1 +cuda ^cuda@12.5:",
     )
+
+    def flag_handler(self, name, flags):
+        if name == "cxxflags":
+            if self.spec.satisfies("@:2.2.0 %oneapi@2025:"):
+                flags.append("-Wno-error=missing-template-arg-list-after-template-kw")
+        return (flags, None, None)
 
     def cmake_args(self):
         spec = self.spec
