@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,7 +17,8 @@ class Costo(CMakePackage):
 
     license("LGPL-3.0-or-later")
 
-    version("0.0.5", tag="v0.0.5", preferred=True)
+    version("0.0.8", tag="v0.0.8", preferred=True)
+    version("0.0.5", tag="v0.0.5")
     version("develop", branch="devel")
     version("main", branch="main", deprecated=True)
 

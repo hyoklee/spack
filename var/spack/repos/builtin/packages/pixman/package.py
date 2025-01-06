@@ -1,14 +1,15 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import sys
 
+import spack.build_systems.autotools
+import spack.build_systems.meson
 from spack.package import *
 
 
-class Pixman(AutotoolsPackage):
+class Pixman(AutotoolsPackage, MesonPackage):
     """The Pixman package contains a library that provides low-level
     pixel manipulation features such as image compositing and
     trapezoid rasterization."""
@@ -32,6 +33,9 @@ class Pixman(AutotoolsPackage):
         conditional("meson", when="@0.38:"),
         default="meson",
     )
+
+    # https://github.com/spack/spack/issues/47917
+    conflicts("%intel")
 
     depends_on("c", type="build")
     with when("build_system=meson"):

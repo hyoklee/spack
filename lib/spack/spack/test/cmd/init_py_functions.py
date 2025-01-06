@@ -1,12 +1,13 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import pytest
 
+import spack.config
 import spack.environment as ev
 import spack.error
 import spack.solver.asp as asp
+import spack.store
 from spack.cmd import (
     CommandNameError,
     PythonNameError,
@@ -71,7 +72,7 @@ def test_special_cases_concretization_parse_specs(
         # We convert the last one to a specfile input
         filename = tmpdir.join("spec.json")
         spec = parse_specs(args[-1], concretize=True)[0]
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding="utf-8") as f:
             spec.to_json(f)
         args[-1] = str(filename)
 
@@ -123,7 +124,7 @@ def test_special_cases_concretization_matching_specs_from_env(
         # We convert the last one to a specfile input
         filename = tmpdir.join("spec.json")
         spec = parse_specs(args[-1], concretize=True)[0]
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding="utf-8") as f:
             spec.to_json(f)
         args[-1] = str(filename)
 

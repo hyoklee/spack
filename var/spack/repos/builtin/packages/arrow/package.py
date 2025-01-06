@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -54,7 +53,12 @@ class Arrow(CMakePackage, CudaPackage):
     depends_on("llvm@:11 +clang", when="+gandiva @:3", type="build")
     depends_on("llvm@:12 +clang", when="+gandiva @:4", type="build")
     depends_on("llvm@:13 +clang", when="+gandiva @:7", type="build")
-    depends_on("llvm@:14 +clang", when="+gandiva @8:", type="build")
+    depends_on("llvm@:14 +clang", when="+gandiva @:9", type="build")
+    depends_on("llvm@:15 +clang", when="+gandiva @:11", type="build")
+    depends_on("llvm@:16 +clang", when="+gandiva @:13", type="build")
+    depends_on("llvm@:17 +clang", when="+gandiva @:15.0.1", type="build")
+    depends_on("llvm@:18.1 +clang", when="+gandiva @:16.0.1", type="build")
+    depends_on("llvm@:19.1 +clang", when="+gandiva", type="build")
     depends_on("lz4", when="+lz4")
     depends_on("ninja", type="build")
     depends_on("openssl", when="+gandiva @6.0.0:")

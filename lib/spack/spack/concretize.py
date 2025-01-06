@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """High-level functions to concretize list of specs"""
@@ -159,6 +158,11 @@ def concretize_separately(
     # Solve the environment in parallel on Linux
     # TODO: support parallel concretization on macOS and Windows
     num_procs = min(len(args), spack.config.determine_number_of_jobs(parallel=True))
+
+    msg = "Starting concretization"
+    if sys.platform not in ("darwin", "win32") and num_procs > 1:
+        msg += f" pool with {num_procs} processes"
+    tty.msg(msg)
 
     for j, (i, concrete, duration) in enumerate(
         spack.util.parallel.imap_unordered(
