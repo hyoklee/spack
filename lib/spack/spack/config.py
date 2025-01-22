@@ -36,6 +36,8 @@ import re
 import sys
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
+import jsonschema
+
 from llnl.util import filesystem, lang, tty
 
 import spack.error
@@ -951,12 +953,6 @@ def set(path: str, value: Any, scope: Optional[str] = None) -> None:
     return CONFIG.set(path, value, scope)
 
 
-def add_default_platform_scope(platform: str) -> None:
-    plat_name = os.path.join("defaults", platform)
-    plat_path = os.path.join(CONFIGURATION_DEFAULTS_PATH[1], platform)
-    CONFIG.push_scope(DirectoryConfigScope(plat_name, plat_path))
-
-
 def scopes() -> Dict[str, ConfigScope]:
     """Convenience function to get list of configuration scopes."""
     return CONFIG.scopes
@@ -1054,8 +1050,6 @@ def validate(
     This leverages the line information (start_mark, end_mark) stored
     on Spack YAML structures.
     """
-    import jsonschema
-
     try:
         spack.schema.Validator(schema).validate(data)
     except jsonschema.ValidationError as e:
