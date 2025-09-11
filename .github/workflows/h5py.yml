@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ develop ]
   workflow_dispatch:
-    
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,8 +24,10 @@ jobs:
         spack install py-pytest
         spack install py-pip
         spack install py-pytest-mpi
+        spack install py-ipython
         spack load py-h5py
         spack load py-pytest
         spack load py-pip
         spack load py-pytest-mpi
+        spack load py-ipython
         python -c "import h5py; h5py.run_tests(); print(h5py.version.info);"
