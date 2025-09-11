@@ -1,0 +1,25 @@
+name: h5py
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+  workflow_dispatch:
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: install
+      run: |
+        . ./share/spack/setup-env.sh
+        spack compiler find
+        spack external find
+        spack install py-h5py@master+mpi ^hdf5@develop-2.0        
+        spack install py-pytest
+        spack install py-pip
+        spack install py-pytest-mpi
+        python -c "import h5py; h5py.run_tests(); print(h5py.version.info);"
