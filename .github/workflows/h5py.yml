@@ -18,6 +18,8 @@ jobs:
         . ./share/spack/setup-env.sh
         spack compiler find
         spack external find
+        spack spec py-h5py@master+mpi
+        cp ./var/spack/repos/builtin/packages/py_h5py/package.py /home/runner/.spack/package_repos/*/repos/spack_repo/builtin/packages/py_h5py/package.py
         spack install py-h5py@master+mpi ^hdf5@develop-2.0        
         spack install py-pytest
         spack install py-pip
