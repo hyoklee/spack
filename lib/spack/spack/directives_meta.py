@@ -6,9 +6,8 @@ import collections.abc
 import functools
 from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Type, Union
 
-import llnl.util.lang
-
 import spack.error
+import spack.llnl.util.lang
 import spack.repo
 import spack.spec
 
@@ -48,7 +47,7 @@ class DirectiveMeta(type):
 
         # De-duplicates directives from base classes
         attr_dict["_directives_to_be_executed"] = [
-            x for x in llnl.util.lang.dedupe(attr_dict["_directives_to_be_executed"])
+            x for x in spack.llnl.util.lang.dedupe(attr_dict["_directives_to_be_executed"])
         ]
 
         # Move things to be executed from module scope (where they
@@ -65,7 +64,7 @@ class DirectiveMeta(type):
         # The instance is being initialized: if it is a package we must ensure
         # that the directives are called to set it up.
 
-        if cls.__module__.startswith(spack.repo.ROOT_PYTHON_NAMESPACE):
+        if spack.repo.is_package_module(cls.__module__):
             # Ensure the presence of the dictionaries associated with the directives.
             # All dictionaries are defaultdicts that create lists for missing keys.
             for d in DirectiveMeta._directive_dict_names:
@@ -114,8 +113,8 @@ class DirectiveMeta(type):
 
         .. code-block:: python
 
-            @directive(dicts='versions')
-            version(pkg, ...):
+            @directive(dicts="versions")
+            def version(pkg, ...):
                 ...
 
         This directive allows you write:
@@ -127,15 +126,15 @@ class DirectiveMeta(type):
 
         The ``@directive`` decorator handles a couple things for you:
 
-          1. Adds the class scope (pkg) as an initial parameter when
-             called, like a class method would.  This allows you to modify
-             a package from within a directive, while the package is still
-             being defined.
+        1. Adds the class scope (pkg) as an initial parameter when
+           called, like a class method would.  This allows you to modify
+           a package from within a directive, while the package is still
+           being defined.
 
-          2. It automatically adds a dictionary called "versions" to the
-             package so that you can refer to pkg.versions.
+        2. It automatically adds a dictionary called ``versions`` to the
+           package so that you can refer to pkg.versions.
 
-        The ``(dicts='versions')`` part ensures that ALL packages in Spack
+        The ``(dicts="versions")`` part ensures that ALL packages in Spack
         will have a ``versions`` attribute after they're constructed, and
         that if no directive actually modified it, it will just be an
         empty dict.
@@ -144,7 +143,6 @@ class DirectiveMeta(type):
         Package class, and it's how Spack gets information from the
         packages to the core.
         """
-        global directive_names
 
         if isinstance(dicts, str):
             dicts = (dicts,)
@@ -186,8 +184,10 @@ class DirectiveMeta(type):
                     ]
                     if kwargs.get("when"):
                         when_constraints.append(spack.spec.Spec(kwargs["when"]))
-                    when_spec = spack.spec.merge_abstract_anonymous_specs(*when_constraints)
 
+                    when_spec = spack.spec.Spec()
+                    for current in when_constraints:
+                        when_spec._constrain_symbolically(current, deps=True)
                     kwargs["when"] = when_spec
 
                 # If any of the arguments are executors returned by a

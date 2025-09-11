@@ -5,12 +5,9 @@
 """Implementation details of the ``spack module`` command."""
 
 import collections
-import os.path
+import os
 import shutil
 import sys
-
-from llnl.util import filesystem, tty
-from llnl.util.tty import color
 
 import spack.cmd
 import spack.config
@@ -20,6 +17,8 @@ import spack.modules.common
 import spack.repo
 from spack.cmd import MultipleSpecsMatch, NoSpecMatches
 from spack.cmd.common import arguments
+from spack.llnl.util import filesystem, tty
+from spack.llnl.util.tty import color
 
 description = "manipulate module files"
 section = "environment"
@@ -357,9 +356,9 @@ def refresh(module_type, specs, args):
 #: Dictionary populated with the list of sub-commands.
 #: Each sub-command must be callable and accept 3 arguments:
 #:
-#:   - module_type: the type of module it refers to
-#:   - specs : the list of specs to be processed
-#:   - args : namespace containing the parsed command line arguments
+#: - module_type: the type of module it refers to
+#: - specs : the list of specs to be processed
+#: - args : namespace containing the parsed command line arguments
 callbacks = {"refresh": refresh, "rm": rm, "find": find, "loads": loads}
 
 
@@ -383,8 +382,12 @@ def modules_cmd(parser, args, module_type, callbacks=callbacks):
         query = " ".join(str(s) for s in args.constraint_specs)
         msg = f"the constraint '{query}' matches multiple packages:\n"
         for s in specs:
-            spec_fmt = "{hash:7} {name}{@version}{%compiler}"
-            spec_fmt += "{compiler_flags}{variants}{arch=architecture}"
+            spec_fmt = (
+                "{hash:7} {name}{@version}{compiler_flags}{variants}"
+                "{ platform=architecture.platform}{ os=architecture.os}"
+                "{ target=architecture.target}"
+                "{%compiler}"
+            )
             msg += "\t" + s.cformat(spec_fmt) + "\n"
         tty.die(msg, "In this context exactly *one* match is needed.")
 

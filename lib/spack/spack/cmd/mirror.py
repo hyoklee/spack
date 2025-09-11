@@ -2,17 +2,17 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+import argparse
 import sys
-
-import llnl.util.lang as lang
-import llnl.util.tty as tty
-import llnl.util.tty.colify as colify
 
 import spack.caches
 import spack.cmd
 import spack.concretize
 import spack.config
 import spack.environment as ev
+import spack.llnl.util.lang as lang
+import spack.llnl.util.tty as tty
+import spack.llnl.util.tty.colify as colify
 import spack.mirrors.mirror
 import spack.mirrors.utils
 import spack.repo
@@ -26,7 +26,7 @@ section = "config"
 level = "long"
 
 
-def setup_parser(subparser):
+def setup_parser(subparser: argparse.ArgumentParser) -> None:
     arguments.add_common_arguments(subparser, ["no_checksum"])
 
     sp = subparser.add_subparsers(metavar="SUBCOMMAND", dest="mirror_command")
@@ -45,7 +45,7 @@ def setup_parser(subparser):
         " in the current environment if there is an active environment"
         " (this requires significant time and space)",
     )
-    create_parser.add_argument("-f", "--file", help="file with specs of packages to put in mirror")
+    create_parser.add_argument("--file", help="file with specs of packages to put in mirror")
     create_parser.add_argument(
         "--exclude-file",
         help="specs which Spack should not try to add to a mirror"
@@ -109,7 +109,7 @@ def setup_parser(subparser):
         choices=("binary", "source"),
         help=(
             "specify the mirror type: for both binary "
-            "and source use `--type binary --type source` (default)"
+            "and source use ``--type binary --type source`` (default)"
         ),
     )
     add_parser.add_argument(
@@ -180,7 +180,7 @@ def setup_parser(subparser):
         choices=("binary", "source"),
         help=(
             "specify the mirror type: for both binary "
-            "and source use `--type binary --type source`"
+            "and source use ``--type binary --type source``"
         ),
     )
     set_parser.add_argument("--url", help="url of mirror directory from 'spack mirror create'")
@@ -225,24 +225,21 @@ def setup_parser(subparser):
     arguments.add_connection_args(set_parser, False)
 
     # List
-    list_parser = sp.add_parser("list", help=mirror_list.__doc__)
+    list_parser = sp.add_parser("list", aliases=["ls"], help=mirror_list.__doc__)
     list_parser.add_argument(
         "--scope", action=arguments.ConfigScope, help="configuration scope to read from"
     )
 
 
-def _configure_access_pair(
-    args, id_tok, id_variable_tok, secret_tok, secret_variable_tok, default=None
-):
+def _configure_access_pair(args, id_tok, id_variable_tok, secret_variable_tok, default=None):
     """Configure the access_pair options"""
 
     # Check if any of the arguments are set to update this access_pair.
     # If none are set, then skip computing the new access pair
     args_id = getattr(args, id_tok)
     args_id_variable = getattr(args, id_variable_tok)
-    args_secret = getattr(args, secret_tok)
     args_secret_variable = getattr(args, secret_variable_tok)
-    if not any([args_id, args_id_variable, args_secret, args_secret_variable]):
+    if not any([args_id, args_id_variable, args_secret_variable]):
         return None
 
     def _default_value(id_):
@@ -261,7 +258,6 @@ def _configure_access_pair(
 
     id_ = None
     id_variable = None
-    secret = None
     secret_variable = None
 
     # Get the value/default value if the argument of the inverse
@@ -269,31 +265,22 @@ def _configure_access_pair(
         id_ = getattr(args, id_tok) or _default_value("id")
     if not args_id:
         id_variable = getattr(args, id_variable_tok) or _default_variable("id")
-    if not args_secret_variable:
-        secret = getattr(args, secret_tok) or _default_value("secret")
-    if not args_secret:
-        secret_variable = getattr(args, secret_variable_tok) or _default_variable("secret")
+    secret_variable = getattr(args, secret_variable_tok) or _default_variable("secret")
 
-    if (id_ or id_variable) and (secret or secret_variable):
-        if secret:
-            if not id_:
-                raise SpackError("Cannot add mirror with a variable id and text secret")
-
-            return [id_, secret]
-        else:
-            return dict(
-                [
-                    (("id", id_) if id_ else ("id_variable", id_variable)),
-                    ("secret_variable", secret_variable),
-                ]
-            )
+    if (id_ or id_variable) and secret_variable:
+        return dict(
+            [
+                (("id", id_) if id_ else ("id_variable", id_variable)),
+                ("secret_variable", secret_variable),
+            ]
+        )
     else:
-        if id_ or id_variable or secret or secret_variable is not None:
+        if id_ or id_variable or secret_variable is not None:
             id_arg_tok = id_tok.replace("_", "-")
-            secret_arg_tok = secret_tok.replace("_", "-")
+            secret_variable_arg_tok = secret_variable_tok.replace("_", "-")
             tty.warn(
                 "Expected both parts of the access pair to be specified. "
-                f"(i.e. --{id_arg_tok} and --{secret_arg_tok})"
+                f"(i.e. --{id_arg_tok} and --{secret_variable_arg_tok})"
             )
 
         return None
@@ -303,8 +290,6 @@ def mirror_add(args):
     """add a mirror to Spack"""
     if (
         args.s3_access_key_id
-        or args.s3_access_key_secret
-        or args.s3_access_token
         or args.s3_access_key_id_variable
         or args.s3_access_key_secret_variable
         or args.s3_access_token_variable
@@ -312,7 +297,6 @@ def mirror_add(args):
         or args.s3_endpoint_url
         or args.type
         or args.oci_username
-        or args.oci_password
         or args.oci_username_variable
         or args.oci_password_variable
         or args.autopush
@@ -320,29 +304,13 @@ def mirror_add(args):
     ):
         connection = {"url": args.url}
         # S3 Connection
-        if args.s3_access_key_secret:
-            tty.warn(
-                "Configuring mirror secrets as plain text with --s3-access-key-secret is "
-                "deprecated. Use --s3-access-key-secret-variable instead"
-            )
-        if args.oci_password:
-            tty.warn(
-                "Configuring mirror secrets as plain text with --oci-password is deprecated. "
-                "Use --oci-password-variable instead"
-            )
         access_pair = _configure_access_pair(
-            args,
-            "s3_access_key_id",
-            "s3_access_key_id_variable",
-            "s3_access_key_secret",
-            "s3_access_key_secret_variable",
+            args, "s3_access_key_id", "s3_access_key_id_variable", "s3_access_key_secret_variable"
         )
         if access_pair:
             connection["access_pair"] = access_pair
 
-        if args.s3_access_token:
-            connection["access_token"] = args.s3_access_token
-        elif args.s3_access_token_variable:
+        if args.s3_access_token_variable:
             connection["access_token_variable"] = args.s3_access_token_variable
 
         if args.s3_profile:
@@ -353,7 +321,7 @@ def mirror_add(args):
 
         # OCI Connection
         access_pair = _configure_access_pair(
-            args, "oci_username", "oci_username_variable", "oci_password", "oci_password_variable"
+            args, "oci_username", "oci_username_variable", "oci_password_variable"
         )
         if access_pair:
             connection["access_pair"] = access_pair
@@ -394,14 +362,13 @@ def _configure_mirror(args):
         args,
         "s3_access_key_id",
         "s3_access_key_id_variable",
-        "s3_access_key_secret",
         "s3_access_key_secret_variable",
         default=default_access_pair,
     )
     if access_pair:
         changes["access_pair"] = access_pair
-    if args.s3_access_token:
-        changes["access_token"] = args.s3_access_token
+    if getattr(args, "s3_access_token_variable", None):
+        changes["access_token_variable"] = args.s3_access_token_variable
     if args.s3_profile:
         changes["profile"] = args.s3_profile
     if args.s3_endpoint_url:
@@ -410,7 +377,6 @@ def _configure_mirror(args):
         args,
         "oci_username",
         "oci_username_variable",
-        "oci_password",
         "oci_password_variable",
         default=default_access_pair,
     )
@@ -514,18 +480,18 @@ def extend_with_dependencies(specs):
 
 
 def concrete_specs_from_cli_or_file(args):
-    tty.msg("Concretizing input specs")
-    with spack.concretize.disable_compiler_existence_check():
-        if args.specs:
-            specs = spack.cmd.parse_specs(args.specs, concretize=True)
-            if not specs:
-                raise SpackError("unable to parse specs from command line")
+    if args.specs:
+        specs = spack.cmd.parse_specs(args.specs, concretize=False)
+        if not specs:
+            raise SpackError("unable to parse specs from command line")
 
-        if args.file:
-            specs = specs_from_text_file(args.file, concretize=True)
-            if not specs:
-                raise SpackError("unable to parse specs from file '{}'".format(args.file))
-    return specs
+    if args.file:
+        specs = specs_from_text_file(args.file, concretize=False)
+        if not specs:
+            raise SpackError("unable to parse specs from file '{}'".format(args.file))
+
+    concrete_specs = spack.cmd.matching_specs_from_env(specs)
+    return concrete_specs
 
 
 class IncludeFilter:
@@ -545,7 +511,7 @@ class IncludeFilter:
         package does not explicitly forbid redistributing source."""
         if self.private:
             return True
-        elif x.package_class.redistribute_source(x):
+        elif spack.repo.PATH.get_pkg_class(x.fullname).redistribute_source(x):
             return True
         else:
             tty.debug(
@@ -608,11 +574,6 @@ def process_mirror_stats(present, mirrored, error):
 
 def mirror_create(args):
     """create a directory to be used as a spack mirror, and fill it with package archives"""
-    if args.specs and args.all:
-        raise SpackError(
-            "cannot specify specs on command line if you chose to mirror all specs with '--all'"
-        )
-
     if args.file and args.all:
         raise SpackError(
             "cannot specify specs with a file if you chose to mirror all specs with '--all'"
@@ -701,6 +662,7 @@ def mirror(parser, args):
         "set-url": mirror_set_url,
         "set": mirror_set,
         "list": mirror_list,
+        "ls": mirror_list,
     }
 
     if args.no_checksum:

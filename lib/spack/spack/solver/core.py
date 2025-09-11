@@ -1,13 +1,14 @@
 # Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-"""Low-level wrappers around clingo API."""
+"""Low-level wrappers around clingo API and other basic functionality related to ASP"""
 import importlib
 import pathlib
 from types import ModuleType
 from typing import Any, Callable, NamedTuple, Optional, Tuple, Union
 
-from llnl.util import lang
+import spack.platforms
+from spack.llnl.util import lang
 
 
 def _ast_getter(*names: str) -> Callable[[Any], Any]:
@@ -31,16 +32,19 @@ class AspObject:
     """Object representing a piece of ASP code."""
 
 
-def _id(thing: Any) -> Union[str, AspObject]:
+def _id(thing: Any) -> Union[str, int, AspObject]:
     """Quote string if needed for it to be a valid identifier."""
-    if isinstance(thing, AspObject):
+    if isinstance(thing, bool):
+        return f'"{thing}"'
+    elif isinstance(thing, (AspObject, int)):
         return thing
-    elif isinstance(thing, bool):
-        return f'"{str(thing)}"'
-    elif isinstance(thing, int):
-        return str(thing)
     else:
-        return f'"{str(thing)}"'
+        if isinstance(thing, str):
+            # escape characters that cannot be in clingo strings
+            thing = thing.replace("\\", r"\\")
+            thing = thing.replace("\n", r"\n")
+            thing = thing.replace('"', r"\"")
+        return f'"{thing}"'
 
 
 class AspVar(AspObject):
@@ -90,26 +94,9 @@ class AspFunction(AspObject):
         """
         return AspFunction(self.name, self.args + args)
 
-    def _argify(self, arg: Any) -> Any:
-        """Turn the argument into an appropriate clingo symbol"""
-        if isinstance(arg, bool):
-            return clingo().String(str(arg))
-        elif isinstance(arg, int):
-            return clingo().Number(arg)
-        elif isinstance(arg, AspFunction):
-            return clingo().Function(arg.name, [self._argify(x) for x in arg.args], positive=True)
-        elif isinstance(arg, AspVar):
-            return clingo().Variable(arg.name)
-        return clingo().String(str(arg))
-
-    def symbol(self):
-        """Return a clingo symbol for this function"""
-        return clingo().Function(
-            self.name, [self._argify(arg) for arg in self.args], positive=True
-        )
-
     def __str__(self) -> str:
-        return f"{self.name}({', '.join(str(_id(arg)) for arg in self.args)})"
+        args = f"({','.join(str(_id(arg)) for arg in self.args)})"
+        return f"{self.name}{args}"
 
     def __repr__(self) -> str:
         return str(self)
@@ -296,3 +283,25 @@ def extract_args(model, predicate_name):
     return their intermediate representation.
     """
     return [intermediate_repr(sym.arguments) for sym in model if sym.name == predicate_name]
+
+
+class SourceContext:
+    """Tracks context in which a Spec's clause-set is generated (i.e.
+    with ``SpackSolverSetup.spec_clauses``).
+
+    Facts generated for the spec may include this context.
+    """
+
+    def __init__(self, *, source: Optional[str] = None):
+        # This can be "literal" for constraints that come from a user
+        # spec (e.g. from the command line); it can be the output of
+        # `ConstraintOrigin.append_type_suffix`; the default is "none"
+        # (which means it isn't important to keep track of the source
+        # in that case).
+        self.source = "none" if source is None else source
+        self.wrap_node_requirement: Optional[bool] = None
+
+
+def using_libc_compatibility() -> bool:
+    """Returns True if we are currently using libc compatibility"""
+    return spack.platforms.host().name == "linux"

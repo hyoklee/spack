@@ -137,6 +137,15 @@ properties: Dict[str, Any] = {
                     },
                     "variants": variants,
                 },
+                "deprecatedProperties": [
+                    {
+                        "names": ["compiler"],
+                        "message": "The packages:all:compiler preference has been deprecated in "
+                        "Spack v1.0, and is currently ignored. It will be removed from config in "
+                        "Spack v1.2.",
+                        "error": False,
+                    }
+                ],
             }
         },
         "additionalProperties": {  # package name
@@ -182,7 +191,7 @@ properties: Dict[str, Any] = {
                                 },
                             },
                         },
-                        "additionalProperties": True,
+                        "additionalProperties": False,
                         "required": ["spec"],
                     },
                 },
@@ -202,6 +211,7 @@ schema = {
 
 
 def update(data):
+    data = data["packages"]
     changed = False
     for key in data:
         version = data[key].get("version")

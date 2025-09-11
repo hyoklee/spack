@@ -7,31 +7,27 @@ This module contains logic to bootstrap software required by Spack from binaries
 bootstrapping mirrors. The logic is quite different from an installation done from a Spack user,
 because of the following reasons:
 
-  1. The binaries are all compiled on the same OS for a given platform (e.g. they are compiled on
-     ``centos7`` on ``linux``), but they will be installed and used on the host OS. They are also
-     targeted at the most generic architecture possible. That makes the binaries difficult to reuse
-     with other specs in an environment without ad-hoc logic.
-  2. Bootstrapping has a fallback procedure where we try to install software by default from the
-     most recent binaries, and proceed to older versions of the mirror, until we try building from
-     sources as a last resort. This allows us not to be blocked on architectures where we don't
-     have binaries readily available, but is also not compatible with the working of environments
-     (they don't have fallback procedures).
-  3. Among the binaries we have clingo, so we can't concretize that with clingo :-)
-  4. clingo, GnuPG and patchelf binaries need to be verified by sha256 sum (all the other binaries
-     we might add on top of that in principle can be verified with GPG signatures).
+1. The binaries are all compiled on the same OS for a given platform (e.g. they are compiled on
+   ``centos7`` on ``linux``), but they will be installed and used on the host OS. They are also
+   targeted at the most generic architecture possible. That makes the binaries difficult to reuse
+   with other specs in an environment without ad-hoc logic.
+2. Bootstrapping has a fallback procedure where we try to install software by default from the
+   most recent binaries, and proceed to older versions of the mirror, until we try building from
+   sources as a last resort. This allows us not to be blocked on architectures where we don't
+   have binaries readily available, but is also not compatible with the working of environments
+   (they don't have fallback procedures).
+3. Among the binaries we have clingo, so we can't concretize that with clingo :-)
+4. clingo, GnuPG and patchelf binaries need to be verified by sha256 sum (all the other binaries
+   we might add on top of that in principle can be verified with GPG signatures).
 """
 
 import copy
 import functools
 import json
 import os
-import os.path
 import sys
 import uuid
 from typing import Any, Callable, Dict, List, Optional, Tuple
-
-from llnl.util import tty
-from llnl.util.lang import GroupedExceptionHandler
 
 import spack.binary_distribution
 import spack.concretize
@@ -46,8 +42,11 @@ import spack.user_environment
 import spack.util.executable
 import spack.util.path
 import spack.util.spack_yaml
+import spack.util.url
 import spack.version
 from spack.installer import PackageInstaller
+from spack.llnl.util import tty
+from spack.llnl.util.lang import GroupedExceptionHandler
 
 from ._common import (
     QueryInfo,
@@ -97,8 +96,12 @@ class Bootstrapper:
         self.name = conf["name"]
         self.metadata_dir = spack.util.path.canonicalize_path(conf["metadata"])
 
-        # Promote (relative) paths to file urls
-        self.url = spack.mirrors.mirror.Mirror(conf["info"]["url"]).fetch_url
+        # Check for relative paths, and turn them into absolute paths
+        # root is the metadata_dir
+        maybe_url = conf["info"]["url"]
+        if spack.util.url.is_path_instead_of_url(maybe_url) and not os.path.isabs(maybe_url):
+            maybe_url = os.path.join(self.metadata_dir, maybe_url)
+        self.url = spack.mirrors.mirror.Mirror(maybe_url).fetch_url
 
     @property
     def mirror_scope(self) -> spack.config.InternalConfigScope:
@@ -288,7 +291,12 @@ class SourceBootstrapper(Bootstrapper):
 
         # Install the spec that should make the module importable
         with spack.config.override(self.mirror_scope):
-            PackageInstaller([concrete_spec.package], fail_fast=True).install()
+            PackageInstaller(
+                [concrete_spec.package],
+                fail_fast=True,
+                package_use_cache=False,
+                dependencies_use_cache=False,
+            ).install()
 
         if _try_import_from_store(module, query_spec=concrete_spec, query_info=info):
             self.last_search = info
@@ -358,6 +366,7 @@ def ensure_module_importable_or_raise(module: str, abstract_spec: Optional[str] 
     for current_config in bootstrapping_sources():
         if not source_is_enabled(current_config):
             continue
+
         with exception_handler.forward(current_config["name"], Exception):
             if create_bootstrapper(current_config).try_import(module, abstract_spec):
                 return
